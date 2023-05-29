@@ -12,6 +12,7 @@ typedef TSharedPtr<struct FObjectExportEx> FObjectExportPtrType;
 typedef TSharedPtr<struct FObjectImportEx> FObjectImportPtrType;
 typedef TSharedPtr<struct FAssetSummary> FAssetSummaryPtr;
 typedef TSharedPtr<struct FPakFileEntry> FPakFileEntryPtr;
+typedef TSharedPtr<struct FPakTextureEntry> FPakTextureEntryPtr;
 typedef TSharedPtr<struct FPakTreeEntry> FPakTreeEntryPtr;
 typedef TSharedPtr<struct FPackageInfo> FPackageInfoPtr;
 typedef TSharedPtr<struct FPakFileSumary> FPakFileSumaryPtr;
@@ -120,6 +121,25 @@ struct FPakTreeEntry : public FPakFileEntry
 	{
 
 	}
+};
+
+struct FPakTextureEntry : public FPakFileEntry
+{
+	FPakTextureEntry(FName InFilename, const FString& InPath)
+		: FPakFileEntry(InFilename, InPath)
+	{
+
+	}
+
+	int32 Width = 0;
+	int32 Height = 0;
+	int32 MipGen = 0;
+	int32 LodBias = 0;
+	int32 MaxSize = 0;
+	int32 TextureGroup = 0;
+	int32 bStreaming = 0;
+	int32 sRGB = 0;
+	int32 TextureCompression = 0;
 };
 
 struct FPakFileSumary

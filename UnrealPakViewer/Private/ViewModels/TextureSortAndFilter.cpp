@@ -13,10 +13,10 @@ void FTextureSortAndFilterTask::DoWork()
 		return;
 	}
 
-	TArray<FPakFileEntryPtr> FilterResult;
-	IPakAnalyzerModule::Get().GetPakAnalyzer()->GetFiles(CurrentSearchText, ClassFilterMap, IndexFilterMap, FilterResult);
+	TArray<FPakTextureEntryPtr> FilterResult;
+	IPakAnalyzerModule::Get().GetPakAnalyzer()->Get2DTextures(CurrentSearchText, IndexFilterMap, FilterResult);
 
-	const FFileColumn* Column = PakFileViewPin->FindCoulum(CurrentSortedColumn);
+	const FTextureColumn* Column = PakFileViewPin->FindCoulum(CurrentSortedColumn);
 	if (!Column)
 	{
 		return;
@@ -44,16 +44,15 @@ void FTextureSortAndFilterTask::DoWork()
 	OnWorkFinished.ExecuteIfBound(CurrentSortedColumn, CurrentSortMode, CurrentSearchText);
 }
 
-void FTextureSortAndFilterTask::SetWorkInfo(FName InSortedColumn, EColumnSortMode::Type InSortMode, const FString& InSearchText, const TMap<FName, bool>& InClassFilterMap, const TMap<int32, bool>& InIndexFilterMap)
+void FTextureSortAndFilterTask::SetWorkInfo(FName InSortedColumn, EColumnSortMode::Type InSortMode, const FString& InSearchText, const TMap<int32, bool>& InIndexFilterMap)
 {
 	CurrentSortedColumn = InSortedColumn;
 	CurrentSortMode = InSortMode;
 	CurrentSearchText = InSearchText;
-	ClassFilterMap = InClassFilterMap;
 	IndexFilterMap = InIndexFilterMap;
 }
 
-void FTextureSortAndFilterTask::RetriveResult(TArray<FPakFileEntryPtr>& OutResult)
+void FTextureSortAndFilterTask::RetriveResult(TArray<FPakTextureEntryPtr>& OutResult)
 {
 	FScopeLock Lock(&CriticalSection);
 	OutResult = MoveTemp(Result);

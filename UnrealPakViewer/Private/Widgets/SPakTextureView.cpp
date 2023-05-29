@@ -30,23 +30,23 @@
 // SPakTextureRow
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class SPakTextureRow : public SMultiColumnTableRow<FPakFileEntryPtr>
+class SPakTextureRow : public SMultiColumnTableRow<FPakTextureEntryPtr>
 {
 	SLATE_BEGIN_ARGS(SPakTextureRow) {}
 	SLATE_END_ARGS()
 
 public:
-	void Construct(const FArguments& InArgs, FPakFileEntryPtr InPakFileItem, TSharedRef<SPakTextureView> InParentWidget, const TSharedRef<STableViewBase>& InOwnerTableView)
+	void Construct(const FArguments& InArgs, FPakTextureEntryPtr InPakFileItem, TSharedRef<SPakTextureView> InParentWidget, const TSharedRef<STableViewBase>& InOwnerTableView)
 	{
 		if (!InPakFileItem.IsValid())
 		{
 			return;
 		}
 
-		WeakPakFileItem = MoveTemp(InPakFileItem);
+		WeakPakTextureItem = MoveTemp(InPakFileItem);
 		WeakPakFileView = InParentWidget;
 
-		SMultiColumnTableRow<FPakFileEntryPtr>::Construct(FSuperRowType::FArguments(), InOwnerTableView);
+		SMultiColumnTableRow<FPakTextureEntryPtr>::Construct(FSuperRowType::FArguments(), InOwnerTableView);
 
 		TSharedRef<SWidget> Row = ChildSlot.GetChildAt(0);
 
@@ -63,7 +63,7 @@ public:
 
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& ColumnName) override
 	{
-		if (ColumnName == FFileColumn::NameColumnName)
+		if (ColumnName == FTextureColumn::NameColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
@@ -71,7 +71,7 @@ public:
 					SNew(STextBlock).Text(this, &SPakTextureRow::GetName).ToolTipText(this, &SPakTextureRow::GetName).HighlightText(this, &SPakTextureRow::GetSearchHighlightText)
 				];
 		}
-		else if (ColumnName == FFileColumn::PathColumnName)
+		else if (ColumnName == FTextureColumn::PathColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
@@ -79,23 +79,7 @@ public:
 					SNew(STextBlock).Text(this, &SPakTextureRow::GetPath).ToolTipText(this, &SPakTextureRow::GetPath).HighlightText(this, &SPakTextureRow::GetSearchHighlightText)
 				];
 		}
-		else if (ColumnName == FFileColumn::ClassColumnName)
-		{
-			return
-				SNew(SBox).Padding(FMargin(4.0, 0.0))
-				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetClass).ColorAndOpacity(this, &SPakTextureRow::GetClassColor)
-				];
-		}
-		else if (ColumnName == FFileColumn::OffsetColumnName)
-		{
-			return
-				SNew(SBox).Padding(FMargin(4.0, 0.0))
-				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetOffset)
-				];
-		}
-		else if (ColumnName == FFileColumn::SizeColumnName)
+		else if (ColumnName == FTextureColumn::SizeColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
@@ -103,77 +87,78 @@ public:
 					SNew(STextBlock).Text(this, &SPakTextureRow::GetSize).ToolTipText(this, &SPakTextureRow::GetSizeToolTip)
 				];
 		}
-		else if (ColumnName == FFileColumn::CompressedSizeColumnName)
+		else if (ColumnName == FTextureColumn::WidthColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetCompressedSize).ToolTipText(this, &SPakTextureRow::GetCompressedSizeToolTip)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetWidth)
 				];
 		}
-		else if (ColumnName == FFileColumn::CompressionBlockCountColumnName)
+		else if (ColumnName == FTextureColumn::HeightColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetCompressionBlockCount)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetWidth)
 				];
 		}
-		else if (ColumnName == FFileColumn::CompressionBlockSizeColumnName)
+		
+		else if (ColumnName == FTextureColumn::MipGenSettingColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetCompressionBlockSize).ToolTipText(this, &SPakTextureRow::GetCompressionBlockSizeToolTip)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetMipGen)
 				];
 		}
-		else if (ColumnName == FFileColumn::CompressionMethodColumnName)
+		else if (ColumnName == FTextureColumn::LodBiasColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetCompressionMethod)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetLodBias)
 				];
 		}
-		else if (ColumnName == FFileColumn::SHA1ColumnName)
+		else if (ColumnName == FTextureColumn::MaxSizeColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetSHA1).ToolTipText(this, &SPakTextureRow::GetSHA1)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetMaxSize)
 				];
 		}
-		else if (ColumnName == FFileColumn::IsEncryptedColumnName)
+		else if (ColumnName == FTextureColumn::GroupColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetIsEncrypted)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetTextureGroup)
 				];
 		}
-		else if (ColumnName == FFileColumn::OwnerPakColumnName)
+		else if (ColumnName == FTextureColumn::IsStreamingColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetOwnerPakName).ToolTipText(this, &SPakTextureRow::GetOwnerPakPath)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetStreaming)
 				];
 		}
-		else if (ColumnName == FFileColumn::DependencyCountColumnName)
+		else if (ColumnName == FTextureColumn::IsSRGBColumnName)
 		{
 			return
 				SNew(SBox).Padding(FMargin(4.0, 0.0))
 				[
-					SNew(STextBlock).Text(this, &SPakTextureRow::GetDepenedencyCount)
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetsRGB)
 				];
 		}
-		else if (ColumnName == FFileColumn::DependentCountColumnName)
+		else if (ColumnName == FTextureColumn::CompressionColumnName)
 		{
-		return
-			SNew(SBox).Padding(FMargin(4.0, 0.0))
-			[
-				SNew(STextBlock).Text(this, &SPakTextureRow::GetDependentCount)
-			];
+			return
+				SNew(SBox).Padding(FMargin(4.0, 0.0))
+				[
+					SNew(STextBlock).Text(this, &SPakTextureRow::GetTextureCompression)
+				];
 		}
 		else
 		{
@@ -192,7 +177,7 @@ protected:
 
 	FText GetName() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
 			return FText::FromName(PakFileItemPin->Filename);
@@ -205,7 +190,7 @@ protected:
 
 	FText GetPath() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
 			return FText::FromString(PakFileItemPin->Path);
@@ -216,12 +201,12 @@ protected:
 		}
 	}
 
-	FText GetClass() const
+	FText GetWidth() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::FromName(PakFileItemPin->Class);
+			return FText::AsNumber(PakFileItemPin->Width);
 		}
 		else
 		{
@@ -231,7 +216,7 @@ protected:
 
 	FSlateColor GetClassColor() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
 			return FSlateColor(FClassColumn::GetColorByClass(*PakFileItemPin->Class.ToString()));
@@ -242,12 +227,12 @@ protected:
 		}
 	}
 
-	FText GetOffset() const
+	FText GetHeight() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsNumber(PakFileItemPin->PakEntry.Offset);
+			return FText::AsNumber(PakFileItemPin->Height);
 		}
 		else
 		{
@@ -257,7 +242,7 @@ protected:
 
 	FText GetSize() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
 			return FText::AsMemory(PakFileItemPin->PakEntry.UncompressedSize, EMemoryUnitStandard::IEC);
@@ -270,7 +255,7 @@ protected:
 
 	FText GetSizeToolTip() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
 			return FText::AsNumber(PakFileItemPin->PakEntry.UncompressedSize);
@@ -281,12 +266,12 @@ protected:
 		}
 	}
 
-	FText GetCompressedSize() const
+	FText GetMipGen() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsMemory(PakFileItemPin->PakEntry.Size, EMemoryUnitStandard::IEC);
+			return FText::AsNumber(PakFileItemPin->MipGen);
 		}
 		else
 		{
@@ -294,12 +279,12 @@ protected:
 		}
 	}
 
-	FText GetCompressedSizeToolTip() const
+	FText GetLodBias() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsNumber(PakFileItemPin->PakEntry.Size);
+			return FText::AsNumber(PakFileItemPin->LodBias);
 		}
 		else
 		{
@@ -307,12 +292,12 @@ protected:
 		}
 	}
 
-	FText GetCompressionBlockCount() const
+	FText GetMaxSize() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsNumber(PakFileItemPin->PakEntry.CompressionBlocks.Num());
+			return FText::AsNumber(PakFileItemPin->MaxSize);
 		}
 		else
 		{
@@ -320,12 +305,12 @@ protected:
 		}
 	}
 
-	FText GetCompressionBlockSize() const
+	FText GetTextureGroup() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsMemory(PakFileItemPin->PakEntry.CompressionBlockSize, EMemoryUnitStandard::IEC);
+			return FText::AsNumber(PakFileItemPin->TextureGroup);
 		}
 		else
 		{
@@ -333,12 +318,12 @@ protected:
 		}
 	}
 
-	FText GetCompressionBlockSizeToolTip() const
+	FText GetStreaming() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::AsNumber(PakFileItemPin->PakEntry.CompressionBlockSize);
+			return FText::AsNumber(PakFileItemPin->bStreaming);
 		}
 		else
 		{
@@ -346,12 +331,12 @@ protected:
 		}
 	}
 
-	FText GetCompressionMethod() const
+	FText GetsRGB() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::FromName(PakFileItemPin->CompressionMethod);
+			return FText::AsNumber(PakFileItemPin->sRGB);
 		}
 		else
 		{
@@ -359,86 +344,19 @@ protected:
 		}
 	}
 
-	FText GetSHA1() const
+	FText GetTextureCompression() const
 	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
+		FPakTextureEntryPtr PakFileItemPin = WeakPakTextureItem.Pin();
 		if (PakFileItemPin.IsValid())
 		{
-			return FText::FromString(BytesToHex(PakFileItemPin->PakEntry.Hash, sizeof(PakFileItemPin->PakEntry.Hash)));
-		}
-		else
-		{
-			return FText();
-		}
-	}
-
-	FText GetIsEncrypted() const
-	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
-		if (PakFileItemPin.IsValid())
-		{
-			return FText::FromString(PakFileItemPin->PakEntry.IsEncrypted() ? TEXT("True") : TEXT("False"));
-		}
-		else
-		{
-			return FText();
-		}
-	}
-
-	FText GetOwnerPakName() const
-	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
-		if (PakFileItemPin.IsValid())
-		{
-			const TArray<FPakFileSumaryPtr>& Summaries = IPakAnalyzerModule::Get().GetPakAnalyzer()->GetPakFileSumary();
-			if (Summaries.IsValidIndex(PakFileItemPin->OwnerPakIndex))
-			{
-				return FText::FromString(FPaths::GetCleanFilename(Summaries[PakFileItemPin->OwnerPakIndex]->PakFilePath));
-			}
+			return FText::AsNumber(PakFileItemPin->TextureCompression);
 		}
 
 		return FText();
-	}
-
-	FText GetOwnerPakPath() const
-	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
-		if (PakFileItemPin.IsValid())
-		{
-			const TArray<FPakFileSumaryPtr>& Summaries = IPakAnalyzerModule::Get().GetPakAnalyzer()->GetPakFileSumary();
-			if (Summaries.IsValidIndex(PakFileItemPin->OwnerPakIndex))
-			{
-				return FText::FromString(Summaries[PakFileItemPin->OwnerPakIndex]->PakFilePath);
-			}
-		}
-
-		return FText();
-	}
-
-	FText GetDepenedencyCount() const
-	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
-		if (PakFileItemPin.IsValid() && PakFileItemPin->AssetSummary.IsValid())
-		{
-			return FText::AsNumber(PakFileItemPin->AssetSummary->DependencyList.Num());
-		}
-
-		return FText::AsNumber(0);
-	}
-
-	FText GetDependentCount() const
-	{
-		FPakFileEntryPtr PakFileItemPin = WeakPakFileItem.Pin();
-		if (PakFileItemPin.IsValid() && PakFileItemPin->AssetSummary.IsValid())
-		{
-			return FText::AsNumber(PakFileItemPin->AssetSummary->DependentList.Num());
-		}
-
-		return FText::AsNumber(0);
 	}
 protected:
-	TWeakPtr<FPakFileEntry> WeakPakFileItem;
 	TWeakPtr<SPakTextureView> WeakPakFileView;
+	TWeakPtr<FPakTextureEntry> WeakPakTextureItem;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -481,28 +399,6 @@ void SPakTextureView::Construct(const FArguments& InArgs)
 				+ SVerticalBox::Slot().VAlign(VAlign_Center).Padding(2.0f).AutoHeight()
 				[
 					SNew(SHorizontalBox)
-
-					+ SHorizontalBox::Slot().Padding(0.f, 0.f, 5.f, 0.f).VAlign(VAlign_Center)
-					[
-						SNew(SComboButton)
-						.ForegroundColor(FLinearColor::White)
-						.ContentPadding(0)
-						.ToolTipText(LOCTEXT("ClassFilterToolTip", "Filter files by class."))
-						.OnGetMenuContent(this, &SPakTextureView::OnBuildClassFilterMenu)
-						.HasDownArrow(true)
-						.ContentPadding(FMargin(1.0f, 1.0f, 1.0f, 0.0f))
-						.ButtonContent()
-						[
-							SNew(SHorizontalBox)
-
-							+ SHorizontalBox::Slot()
-							.AutoWidth()
-							[
-								SNew(STextBlock)
-								.Text(LOCTEXT("ClassFilter", "Class Filter")).ColorAndOpacity(FLinearColor::Green).ShadowOffset(FVector2D(1.f, 1.f))
-							]
-						]
-					]
 
 					+ SHorizontalBox::Slot().Padding(0.f, 0.f, 5.f, 0.f).VAlign(VAlign_Center)
 					[
@@ -554,7 +450,7 @@ void SPakTextureView::Construct(const FArguments& InArgs)
 			SNew(SBorder)
 			.Padding(0.f)
 			[
-				SAssignNew(FileListView, SListView<FPakFileEntryPtr>)
+				SAssignNew(FileListView, SListView<FPakTextureEntryPtr>)
 				.ItemHeight(20.f)
 				.SelectionMode(ESelectionMode::Multi)
 				//.OnMouseButtonClick()
@@ -581,7 +477,7 @@ void SPakTextureView::Construct(const FArguments& InArgs)
 
 	InnderTask->GetOnSortAndFilterFinishedDelegate().BindRaw(this, &SPakTextureView::OnSortAndFilterFinihed);
 
-	FilesSummary = MakeShared<FPakFileEntry>(TEXT("Total"), TEXT("Total"));
+	FilesSummary = MakeShared<FPakTextureEntry>(TEXT("Total"), TEXT("Total"));
 }
 
 void SPakTextureView::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
@@ -601,7 +497,7 @@ void SPakTextureView::Tick(const FGeometry& AllottedGeometry, const double InCur
 					IndexFilterMap.Add(i, PakFilterMap[i].bShow);
 				}
 
-				InnderTask->SetWorkInfo(CurrentSortedColumn, CurrentSortMode, CurrentSearchText, ClassFilterMap, IndexFilterMap);
+				InnderTask->SetWorkInfo(CurrentSortedColumn, CurrentSortMode, CurrentSearchText, IndexFilterMap);
 				SortAndFilterTask->StartBackgroundTask();
 			}
 		}
@@ -633,7 +529,7 @@ void SPakTextureView::OnSearchBoxTextChanged(const FText& InFilterText)
 	MarkDirty(true);
 }
 
-TSharedRef<ITableRow> SPakTextureView::OnGenerateFileRow(FPakFileEntryPtr InPakFileItem, const TSharedRef<STableViewBase>& OwnerTable)
+TSharedRef<ITableRow> SPakTextureView::OnGenerateFileRow(FPakTextureEntryPtr InPakFileItem, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	return SNew(SPakTextureRow, InPakFileItem, SharedThis(this), OwnerTable);
 }
@@ -771,9 +667,9 @@ void SPakTextureView::OnBuildCopyColumnMenu(FMenuBuilder& MenuBuilder)
 
 	MenuBuilder.BeginSection("CopyColumn", LOCTEXT("ContextMenu_Header_Columns_CopySingleColumn", "Copy Column"));
 	{
-		for (const auto& ColumnPair : FileColumns)
+		for (const auto& ColumnPair : TextureColumns)
 		{
-			const FFileColumn& Column = ColumnPair.Value;
+			const FTextureColumn& Column = ColumnPair.Value;
 
 			if (Column.IsVisible())
 			{
@@ -799,9 +695,9 @@ void SPakTextureView::OnBuildViewColumnMenu(FMenuBuilder& MenuBuilder)
 {
 	MenuBuilder.BeginSection("ViewColumn", LOCTEXT("ContextMenu_Header_Columns_View", "View Column"));
 
-	for (const auto& ColumnPair : FileColumns)
+	for (const auto& ColumnPair : TextureColumns)
 	{
-		const FFileColumn& Column = ColumnPair.Value;
+		const FTextureColumn& Column = ColumnPair.Value;
 
 		FUIAction Action_ToggleColumn
 		(
@@ -818,55 +714,6 @@ void SPakTextureView::OnBuildViewColumnMenu(FMenuBuilder& MenuBuilder)
 	}
 
 	MenuBuilder.EndSection();
-}
-
-TSharedRef<SWidget> SPakTextureView::OnBuildClassFilterMenu()
-{
-	FMenuBuilder MenuBuilder(/*bInShouldCloseWindowAfterMenuSelection=*/true, nullptr);
-
-	if (ClassFilterMap.Num() > 0)
-	{
-		MenuBuilder.BeginSection("FileViewShowAllClasses", LOCTEXT("QuickFilterHeading", "Quick Filter"));
-		{
-			MenuBuilder.AddMenuEntry(
-				LOCTEXT("ShowAllClasses", "Show/Hide All"),
-				LOCTEXT("ShowAllClasses_Tooltip", "Change filtering to show/hide all classes"),
-				FSlateIcon(),
-				FUIAction(FExecuteAction::CreateSP(this, &SPakTextureView::OnShowAllClassesExecute),
-					FCanExecuteAction(),
-					FIsActionChecked::CreateSP(this, &SPakTextureView::IsShowAllClassesChecked)),
-				NAME_None,
-				EUserInterfaceActionType::ToggleButton
-			);
-		}
-		MenuBuilder.EndSection();
-	}
-
-	MenuBuilder.BeginSection("FileViewClassesEntries", LOCTEXT("ClassesHeading", "Classes"));
-	for (const auto& Pair : ClassFilterMap)
-	{
-		const FString ClassString = Pair.Key.ToString();
-		const FText ClassText(FText::AsCultureInvariant(ClassString));
-
-		const TSharedRef<SWidget> TextBlock = SNew(STextBlock)
-			.Text(ClassText)
-			.ShadowColorAndOpacity(FLinearColor(0.05f, 0.05f, 0.05f, 1.0f))
-			.ShadowOffset(FVector2D(1.0f, 1.0f))
-			.ColorAndOpacity(FSlateColor(FClassColumn::GetColorByClass(*ClassString)));
-
-		MenuBuilder.AddMenuEntry(
-			FUIAction(FExecuteAction::CreateSP(this, &SPakTextureView::OnToggleClassesExecute, Pair.Key),
-				FCanExecuteAction(),
-				FIsActionChecked::CreateSP(this, &SPakTextureView::IsClassesFilterChecked, Pair.Key)),
-			TextBlock,
-			NAME_None,
-			FText::Format(LOCTEXT("Class_Tooltip", "Filter the File View to show/hide class: {0}"), ClassText),
-			EUserInterfaceActionType::ToggleButton
-		);
-	}
-	MenuBuilder.EndSection();
-
-	return MenuBuilder.MakeWidget();
 }
 
 TSharedRef<SWidget> SPakTextureView::OnBuildPakFilterMenu()
@@ -921,64 +768,6 @@ TSharedRef<SWidget> SPakTextureView::OnBuildPakFilterMenu()
 	}
 
 	return MenuBuilder.MakeWidget();
-}
-
-void SPakTextureView::OnShowAllClassesExecute()
-{
-	const bool bIsShowAll = IsShowAllClassesChecked();
-	for (auto& Pair : ClassFilterMap)
-	{
-		Pair.Value = !bIsShowAll;
-	}
-
-	MarkDirty(true);
-}
-
-bool SPakTextureView::IsShowAllClassesChecked() const
-{
-	for (const auto& Pair : ClassFilterMap)
-	{
-		if (!Pair.Value)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void SPakTextureView::OnToggleClassesExecute(FName InClassName)
-{
-	bool* bShow = ClassFilterMap.Find(InClassName);
-	if (bShow)
-	{
-		*bShow = !(*bShow);
-		MarkDirty(true);
-	}
-}
-
-bool SPakTextureView::IsClassesFilterChecked(FName InClassName) const
-{
-	const bool* bShow = ClassFilterMap.Find(InClassName);
-	return bShow ? *bShow : false;
-}
-
-void SPakTextureView::FillClassesFilter()
-{
-	ClassFilterMap.Empty();
-	IPakAnalyzer* PakAnalyzer = IPakAnalyzerModule::Get().GetPakAnalyzer();
-
-	if (PakAnalyzer)
-	{
-		const TArray<FPakTreeEntryPtr>& TreeRoots = PakAnalyzer->GetPakTreeRootNode();
-		for (const FPakTreeEntryPtr& TreeRoot : TreeRoots)
-		{
-			for (const auto& Pair : TreeRoot->FileClassMap)
-			{
-				ClassFilterMap.Add(Pair.Key, true);
-			}
-		}
-	}
 }
 
 void SPakTextureView::OnShowAllPaksExecute()
@@ -1047,204 +836,262 @@ void SPakTextureView::FillPaksFilter()
 
 void SPakTextureView::InitializeAndShowHeaderColumns()
 {
-	FileColumns.Empty();
+	TextureColumns.Empty();
 
 	// Name Column
-	FFileColumn& NameColumn = FileColumns.Emplace(FFileColumn::NameColumnName, FFileColumn(0, FFileColumn::NameColumnName, LOCTEXT("NameColumn", "Name"), LOCTEXT("NameColumnTip", "File name"), 2.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered));
+	FTextureColumn& NameColumn = TextureColumns.Emplace(FTextureColumn::NameColumnName, 
+		FTextureColumn(0, FTextureColumn::NameColumnName,
+			LOCTEXT("NameColumn", "Name"), LOCTEXT("NameColumnTip", "File name"), 2.f,
+		EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered)
+	);
 	NameColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return A->Filename.LexicalLess(B->Filename);
 		}
 	);
 	NameColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return B->Filename.LexicalLess(A->Filename);
 		}
 	);
 
 	// Path Column
-	FFileColumn& PathColumn = FileColumns.Emplace(FFileColumn::PathColumnName, FFileColumn(1, FFileColumn::PathColumnName, LOCTEXT("PathColumn", "Path"), LOCTEXT("PathColumnTip", "File path in pak"), 3.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
+	FTextureColumn& PathColumn = TextureColumns.Emplace(FTextureColumn::PathColumnName,
+		FTextureColumn(1, FTextureColumn::PathColumnName, 
+			LOCTEXT("PathColumn", "Path"), LOCTEXT("PathColumnTip", "File path in pak"), 3.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden)
+	);
 	PathColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return A->Path < B->Path;
 		}
 	);
 	PathColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return B->Path < A->Path;
 		}
 	);
 
-	// Class Column
-	FFileColumn& ClassColumn = FileColumns.Emplace(FFileColumn::ClassColumnName, FFileColumn(2, FFileColumn::ClassColumnName, LOCTEXT("ClassColumn", "Class"), LOCTEXT("ClassColumnTip", "Class name in asset registry or file extension if not found"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	ClassColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return A->Class.LexicalLess(B->Class);
-		}
-	);
-	ClassColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return B->Class.LexicalLess(A->Class);
-		}
-	);
-
-	// Dependency Count Column
-	FFileColumn& DependencyCountColumn = FileColumns.Emplace(FFileColumn::DependencyCountColumnName, FFileColumn(3, FFileColumn::DependencyCountColumnName, LOCTEXT("DependencyCountColumn", "Dependency Count"), LOCTEXT("DependencyCountColumnTip", "Packages this package depends on"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	DependencyCountColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			const int32 ACount = A->AssetSummary.IsValid() ? A->AssetSummary->DependencyList.Num() : 0;
-			const int32 BCount = B->AssetSummary.IsValid() ? B->AssetSummary->DependencyList.Num() : 0;
-			return ACount < BCount;
-		}
-	);
-	DependencyCountColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			const int32 ACount = A->AssetSummary.IsValid() ? A->AssetSummary->DependencyList.Num() : 0;
-			const int32 BCount = B->AssetSummary.IsValid() ? B->AssetSummary->DependencyList.Num() : 0;
-			return BCount < ACount;
-		}
-	);
-
-	// Dependent Count Column
-	FFileColumn& DependentCountColumn = FileColumns.Emplace(FFileColumn::DependentCountColumnName, FFileColumn(4, FFileColumn::DependentCountColumnName, LOCTEXT("DependentCountColumn", "Dependent Count"), LOCTEXT("DependentCountColumnTip", "Packages depend on this package"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	DependentCountColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			const int32 ACount = A->AssetSummary.IsValid() ? A->AssetSummary->DependentList.Num() : 0;
-			const int32 BCount = B->AssetSummary.IsValid() ? B->AssetSummary->DependentList.Num() : 0;
-			return ACount < BCount;
-		}
-	);
-	DependentCountColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			const int32 ACount = A->AssetSummary.IsValid() ? A->AssetSummary->DependentList.Num() : 0;
-			const int32 BCount = B->AssetSummary.IsValid() ? B->AssetSummary->DependentList.Num() : 0;
-			return BCount < ACount;
-		}
-	);
-
-	// Offset Column
-	FFileColumn& OffsetColumn = FileColumns.Emplace(FFileColumn::OffsetColumnName, FFileColumn(5, FFileColumn::OffsetColumnName, LOCTEXT("OffsetColumn", "Offset"), LOCTEXT("OffsetColumnTip", "File offset in pak"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	OffsetColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return A->PakEntry.Offset < B->PakEntry.Offset;
-		}
-	);
-	OffsetColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return B->PakEntry.Offset < A->PakEntry.Offset;
-		}
-	);
-
 	// Size Column
-	FFileColumn& SizeColumn = FileColumns.Emplace(FFileColumn::SizeColumnName, FFileColumn(6, FFileColumn::SizeColumnName, LOCTEXT("SizeColumn", "Size"), LOCTEXT("SizeColumnTip", "File original size"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
+	FTextureColumn& SizeColumn = TextureColumns.Emplace(FTextureColumn::SizeColumnName,
+		FTextureColumn(2, FTextureColumn::SizeColumnName, 
+			LOCTEXT("SizeColumn", "Size"), LOCTEXT("SizeColumnTip", "File original size"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden)
+	);
 	SizeColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return A->PakEntry.UncompressedSize < B->PakEntry.UncompressedSize;
 		}
 	);
 	SizeColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
 			return B->PakEntry.UncompressedSize < A->PakEntry.UncompressedSize;
 		}
 	);
-	
-	// Compressed Size Column
-	FFileColumn& CompressedSizeColumn = FileColumns.Emplace(FFileColumn::CompressedSizeColumnName, FFileColumn(7, FFileColumn::CompressedSizeColumnName, LOCTEXT("CompressedSizeColumn", "Compressed Size"), LOCTEXT("CompressedSizeColumnTip", "File compressed size"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	CompressedSizeColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+
+	// Width Column
+	FTextureColumn& WidthColumn = TextureColumns.Emplace(FTextureColumn::WidthColumnName, 
+		FTextureColumn(3, FTextureColumn::WidthColumnName, 
+			LOCTEXT("WidthColumn", "Width"), LOCTEXT("WidthColumnTip", "Texture Width"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden)
+	);
+	WidthColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
-			return A->PakEntry.Size < B->PakEntry.Size;
+			if (A->Width == B->Width)
+			{
+				return A->Height > B->Height;
+			}
+			else
+			{
+				return A->Width > B->Width;
+			}
 		}
 	);
-	CompressedSizeColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+	WidthColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
-			return B->PakEntry.Size < A->PakEntry.Size;
-		}
-	);
-	
-	// Compressed Block Count
-	FFileColumn& CompressionBlockCountColumn = FileColumns.Emplace(FFileColumn::CompressionBlockCountColumnName, FFileColumn(8, FFileColumn::CompressionBlockCountColumnName, LOCTEXT("CompressionBlockCountColumn", "Compression Block Count"), LOCTEXT("CompressionBlockCountColumnTip", "File compression block count"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
-	CompressionBlockCountColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return A->PakEntry.CompressionBlocks.Num() < B->PakEntry.CompressionBlocks.Num();
-		}
-	);
-	CompressionBlockCountColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return B->PakEntry.CompressionBlocks.Num() < A->PakEntry.CompressionBlocks.Num();
-		}
-	);
-	
-	// Compressed Block Size
-	FileColumns.Emplace(FFileColumn::CompressionBlockSizeColumnName, FFileColumn(9, FFileColumn::CompressionBlockSizeColumnName, LOCTEXT("CompressionBlockSizeColumn", "Compression Block Size"), LOCTEXT("CompressionBlockSizeColumnTip", "File compression block size"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
-	
-	// Compression Method
-	FFileColumn& CompressionMethodColumn = FileColumns.Emplace(FFileColumn::CompressionMethodColumnName, FFileColumn(10, FFileColumn::CompressionMethodColumnName, LOCTEXT("CompressionMethod", "Compression Method"), LOCTEXT("CompressionMethodTip", "Compression method name used to compress this file"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
-	CompressionMethodColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return A->CompressionMethod.LexicalLess(B->CompressionMethod);
-		}
-	);
-	CompressionMethodColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return B->CompressionMethod.LexicalLess(A->CompressionMethod);
-		}
-	);
-	
-	// Owner Pak
-	FFileColumn& OwnerPakColumn = FileColumns.Emplace(FFileColumn::OwnerPakColumnName, FFileColumn(11, FFileColumn::OwnerPakColumnName, LOCTEXT("OwnerPakColumn", "Onwer Pak"), LOCTEXT("OnwerPakColumnTip", "Owner Pak Name"), 2.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden | EFileColumnFlags::CanBeFiltered));
-	OwnerPakColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return A->OwnerPakIndex < B->OwnerPakIndex;
-		}
-	);
-	OwnerPakColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
-		{
-			return B->OwnerPakIndex < A->OwnerPakIndex;
+			if (A->Width == B->Width)
+			{
+				return A->Height < B->Height;
+			}
+			else
+			{
+				return A->Width < B->Width;
+			}
 		}
 	);
 
-	// SHA1
-	FileColumns.Emplace(FFileColumn::SHA1ColumnName, FFileColumn(12, FFileColumn::SHA1ColumnName, LOCTEXT("SHA1Column", "SHA1"), LOCTEXT("SHA1ColumnTip", "File sha1"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
-	
-	// IsEncrypted
-	FFileColumn& IsEncryptedColumn = FileColumns.Emplace(FFileColumn::IsEncryptedColumnName, FFileColumn(13, FFileColumn::IsEncryptedColumnName, LOCTEXT("IsEncryptedColumn", "IsEncrypted"), LOCTEXT("IsEncryptedColumnTip", "Is file encrypted in pak?"), 1.f, EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
-	IsEncryptedColumn.SetAscendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+	// Height Column
+	FTextureColumn& HeightColumn = TextureColumns.Emplace(FTextureColumn::HeightColumnName,
+		FTextureColumn(4, FTextureColumn::HeightColumnName, 
+			LOCTEXT("HeightColumn", "Height"), LOCTEXT("HeightColumnTip", "Texture Height"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden)
+	);
+	HeightColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
-			return A->PakEntry.IsEncrypted() < B->PakEntry.IsEncrypted();
+			
+			if (A->Height == B->Height)
+			{
+				return A->Width < B->Width;
+			}
+			else
+			{
+				return A->Height < B->Height;
+			}
 		}
 	);
-	IsEncryptedColumn.SetDescendingCompareDelegate(
-		[](const FPakFileEntryPtr& A, const FPakFileEntryPtr& B) -> bool
+	HeightColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
 		{
-			return B->PakEntry.IsEncrypted() < A->PakEntry.IsEncrypted();
+			if (A->Height == B->Height)
+			{
+				return A->Width > B->Width;
+			}
+			else
+			{
+				return A->Height > B->Height;
+			}
+			
+		}
+	);
+
+	// MipGen Column
+	FTextureColumn& MipGenColumn = TextureColumns.Emplace(FTextureColumn::MipGenSettingColumnName, 
+		FTextureColumn(5, FTextureColumn::MipGenSettingColumnName, 
+			LOCTEXT("MipGenColumn", "MipGen"), LOCTEXT("MipGenColumnTip", "MipGen Setting"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden)
+	);
+	MipGenColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->MipGen < B->MipGen;
+		}
+	);
+	MipGenColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->MipGen > B->MipGen;
+		}
+	);
+	
+	// LodBias Column
+	FTextureColumn& LodBiasColumn = TextureColumns.Emplace(FTextureColumn::LodBiasColumnName, 
+		FTextureColumn(6, FTextureColumn::LodBiasColumnName, 
+			LOCTEXT("LodBiasColumn", "LodBias"), LOCTEXT("LodBiasColumnTip", "Texture LodBias"), 0.5f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
+	LodBiasColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->LodBias < B->LodBias;
+		}
+	);
+	LodBiasColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->LodBias > B->LodBias;
+		}
+	);
+	
+	// MaxSize
+	FTextureColumn& MaxSizeColumn = TextureColumns.Emplace(FTextureColumn::MaxSizeColumnName, 
+		FTextureColumn(7, FTextureColumn::MaxSizeColumnName, 
+			LOCTEXT("MaxSizeColumn", "MaxSize"), LOCTEXT("MaxSizeColumnTip", "TextureMaxSize"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeFiltered | EFileColumnFlags::CanBeHidden));
+	MaxSizeColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->MaxSize < B->MaxSize;
+		}
+	);
+	MaxSizeColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->MaxSize > B->MaxSize;
+		}
+	);
+	
+	// TextureGroup
+	FTextureColumn& GroupColumn = TextureColumns.Emplace(FTextureColumn::GroupColumnName, 
+		FTextureColumn(8, FTextureColumn::GroupColumnName,
+			LOCTEXT("TextureGroupColumn", "TextureGroup"), LOCTEXT("TextureGroupColumnTip", "TextureGroup"), 1.f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
+	GroupColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->TextureGroup < B->TextureGroup;
+		}
+	);
+	GroupColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->TextureGroup > B->TextureGroup;
+		}
+	);
+
+	// Streaming
+	FTextureColumn& StreamingColumn = TextureColumns.Emplace(FTextureColumn::IsStreamingColumnName,
+		FTextureColumn(10, FTextureColumn::IsStreamingColumnName,
+			LOCTEXT("Streaming", "Streaming"), LOCTEXT("StreamingTip", "Texture Streaming"), 0.5f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
+	StreamingColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->bStreaming < B->bStreaming;
+		}
+	);
+	StreamingColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->bStreaming > B->bStreaming;
+		}
+	);
+	
+	// sRGB
+	FTextureColumn& sRGBColumn = TextureColumns.Emplace(FTextureColumn::IsSRGBColumnName, 
+		FTextureColumn(9, FTextureColumn::IsSRGBColumnName, 
+			LOCTEXT("sRGB", "sRGB"), LOCTEXT("sRGBColumnColumnTip", "Is sRGB"), 0.5f, 
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden | EFileColumnFlags::CanBeFiltered));
+	sRGBColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->sRGB < B->sRGB;
+		}
+	);
+	sRGBColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->sRGB > B->sRGB;
+		}
+	);
+
+	// Texture Compression
+	FTextureColumn& TCColumn = TextureColumns.Emplace(FTextureColumn::CompressionColumnName, 
+		FTextureColumn(10, FTextureColumn::CompressionColumnName,
+			LOCTEXT("TextureCompression", "Compression"), LOCTEXT("TextureCompressionColumnTip", "TextureCompression"), 1.f,
+			EFileColumnFlags::ShouldBeVisible | EFileColumnFlags::CanBeHidden));
+	TCColumn.SetAscendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->TextureCompression < B->TextureCompression;
+		}
+	);
+	TCColumn.SetDescendingCompareDelegate(
+		[](const FPakTextureEntryPtr& A, const FPakTextureEntryPtr& B) -> bool
+		{
+			return A->TextureCompression < B->TextureCompression;
 		}
 	);
 
 	// Show columns.
-	for (const auto& ColumnPair : FileColumns)
+	for (const auto& ColumnPair : TextureColumns)
 	{
 		if (ColumnPair.Value.ShouldBeVisible())
 		{
@@ -1253,14 +1100,14 @@ void SPakTextureView::InitializeAndShowHeaderColumns()
 	}
 }
 
-const FFileColumn* SPakTextureView::FindCoulum(const FName ColumnId) const
+const FTextureColumn* SPakTextureView::FindCoulum(const FName ColumnId) const
 {
-	return FileColumns.Find(ColumnId);
+	return TextureColumns.Find(ColumnId);
 }
 
-FFileColumn* SPakTextureView::FindCoulum(const FName ColumnId)
+FTextureColumn* SPakTextureView::FindCoulum(const FName ColumnId)
 {
-	return FileColumns.Find(ColumnId);
+	return TextureColumns.Find(ColumnId);
 }
 
 FText SPakTextureView::GetSearchText() const
@@ -1280,7 +1127,7 @@ EColumnSortMode::Type SPakTextureView::GetSortModeForColumn(const FName ColumnId
 
 void SPakTextureView::OnSortModeChanged(const EColumnSortPriority::Type SortPriority, const FName& ColumnId, const EColumnSortMode::Type SortMode)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 	if (!Column)
 	{
 		return;
@@ -1303,7 +1150,7 @@ bool SPakTextureView::CanShowColumn(const FName ColumnId) const
 
 void SPakTextureView::ShowColumn(const FName ColumnId)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 	if (!Column)
 	{
 		return;
@@ -1342,7 +1189,7 @@ void SPakTextureView::ShowColumn(const FName ColumnId)
 	for (; ColumnIndex < CurrentColumnCount; ++ColumnIndex)
 	{
 		const SHeaderRow::FColumn& CurrentColumn = Columns[ColumnIndex];
-		FFileColumn* FileColumn = FindCoulum(CurrentColumn.ColumnId);
+		FTextureColumn* FileColumn = FindCoulum(CurrentColumn.ColumnId);
 		if (TargetColumnIndex < FileColumn->GetIndex())
 		{
 			break;
@@ -1354,14 +1201,14 @@ void SPakTextureView::ShowColumn(const FName ColumnId)
 
 bool SPakTextureView::CanHideColumn(const FName ColumnId)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 
 	return Column ? Column->CanBeHidden() : false;
 }
 
 void SPakTextureView::HideColumn(const FName ColumnId)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 	if (Column)
 	{
 		Column->Hide();
@@ -1371,21 +1218,21 @@ void SPakTextureView::HideColumn(const FName ColumnId)
 
 bool SPakTextureView::IsColumnVisible(const FName ColumnId)
 {
-	const FFileColumn* Column = FindCoulum(ColumnId);
+	const FTextureColumn* Column = FindCoulum(ColumnId);
 
 	return Column ? Column->IsVisible() : false;
 }
 
 bool SPakTextureView::CanToggleColumnVisibility(const FName ColumnId)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 
 	return Column ? !Column->IsVisible() || Column->CanBeHidden() : false;
 }
 
 void SPakTextureView::ToggleColumnVisibility(const FName ColumnId)
 {
-	FFileColumn* Column = FindCoulum(ColumnId);
+	FTextureColumn* Column = FindCoulum(ColumnId);
 	if (!Column)
 	{
 		return;
@@ -1409,7 +1256,7 @@ bool SPakTextureView::OnShowAllColumnsCanExecute() const
 void SPakTextureView::OnShowAllColumnsExecute()
 {
 	// Show columns.
-	for (const auto& ColumnPair : FileColumns)
+	for (const auto& ColumnPair : TextureColumns)
 	{
 		if (!ColumnPair.Value.IsVisible())
 		{
@@ -1420,7 +1267,7 @@ void SPakTextureView::OnShowAllColumnsExecute()
 
 bool SPakTextureView::HasOneFileSelected() const
 {
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
 	return SelectedItems.Num() == 1;
@@ -1428,7 +1275,7 @@ bool SPakTextureView::HasOneFileSelected() const
 
 bool SPakTextureView::HasFileSelected() const
 {
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
 	return SelectedItems.Num() > 0;
@@ -1440,34 +1287,31 @@ void SPakTextureView::OnCopyAllColumnsExecute()
 
 	IPakAnalyzer* PakAnalyzer = IPakAnalyzerModule::Get().GetPakAnalyzer();
 
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
 	if (SelectedItems.Num() > 0)
 	{
 		TArray<TSharedPtr<FJsonValue>> FileObjects;
 
-		for (const FPakFileEntryPtr PakFileItem : SelectedItems)
+		for (const FPakTextureEntryPtr PakFileItem : SelectedItems)
 		{
 			if (PakFileItem.IsValid())
 			{
-				const FPakEntry* PakEntry = &PakFileItem->PakEntry;
 				TSharedRef<FJsonObject> FileObject = MakeShareable(new FJsonObject);
 
 				FileObject->SetStringField(TEXT("Name"), PakFileItem->Filename.ToString());
 				FileObject->SetStringField(TEXT("Path"), PakFileItem->Path);
-				FileObject->SetNumberField(TEXT("Offset"), PakEntry->Offset);
-				FileObject->SetNumberField(TEXT("Size"), PakEntry->UncompressedSize);
-				FileObject->SetNumberField(TEXT("Compressed Size"), PakEntry->Size);
-				FileObject->SetNumberField(TEXT("Compressed Block Count"), PakEntry->CompressionBlocks.Num());
-				FileObject->SetNumberField(TEXT("Compressed Block Size"), PakEntry->CompressionBlockSize);
-				FileObject->SetStringField(TEXT("Compression Method"), PakFileItem->CompressionMethod.ToString());
-				FileObject->SetStringField(TEXT("SHA1"), BytesToHex(PakEntry->Hash, sizeof(PakEntry->Hash)));
-				FileObject->SetStringField(TEXT("IsEncrypted"), PakEntry->IsEncrypted() ? TEXT("True") : TEXT("False"));
-				FileObject->SetStringField(TEXT("Class"), PakFileItem->Class.ToString());
-				FileObject->SetNumberField(TEXT("Dependency Count"), PakFileItem->AssetSummary.IsValid() ? PakFileItem->AssetSummary->DependencyList.Num() : 0);
-				FileObject->SetNumberField(TEXT("Dependent Count"), PakFileItem->AssetSummary.IsValid() ? PakFileItem->AssetSummary->DependentList.Num() : 0);
-				FileObject->SetStringField(TEXT("OwnerPak"), PakAnalyzer && PakAnalyzer->GetPakFileSumary().IsValidIndex(PakFileItem->OwnerPakIndex) ? FPaths::GetCleanFilename(PakAnalyzer->GetPakFileSumary()[PakFileItem->OwnerPakIndex]->PakFilePath) : TEXT(""));
+				FileObject->SetNumberField(TEXT("Size"), PakFileItem->PakEntry.UncompressedSize);
+				FileObject->SetNumberField(TEXT("Width"), PakFileItem->Width);
+				FileObject->SetNumberField(TEXT("Height"), PakFileItem->Height);
+				FileObject->SetNumberField(TEXT("MipGen"), PakFileItem->MipGen);
+				FileObject->SetNumberField(TEXT("LodBias"), PakFileItem->LodBias);
+				FileObject->SetNumberField(TEXT("MaxSize"), PakFileItem->MaxSize);
+				FileObject->SetNumberField(TEXT("TextureGroup"), PakFileItem->TextureGroup);
+				FileObject->SetNumberField(TEXT("Streaming"), PakFileItem->bStreaming);
+				FileObject->SetNumberField(TEXT("sRGB"), PakFileItem->sRGB);
+				FileObject->SetNumberField(TEXT("TextureCompression"), PakFileItem->TextureCompression);
 
 				FileObjects.Add(MakeShareable(new FJsonValueObject(FileObject)));
 			}
@@ -1486,69 +1330,62 @@ void SPakTextureView::OnCopyColumnExecute(const FName ColumnId)
 	IPakAnalyzer* PakAnalyzer = IPakAnalyzerModule::Get().GetPakAnalyzer();
 
 	TArray<FString> Values;
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
-	for (const FPakFileEntryPtr PakFileItem : SelectedItems)
+	for (const FPakTextureEntryPtr PakFileItem : SelectedItems)
 	{
 		if (PakFileItem.IsValid())
 		{
 			const FPakEntry* PakEntry = &PakFileItem->PakEntry;
-			if (ColumnId == FFileColumn::NameColumnName)
+
+			if (ColumnId == FTextureColumn::NameColumnName)
 			{
 				Values.Add(PakFileItem->Filename.ToString());
 			}
-			else if (ColumnId == FFileColumn::PathColumnName)
+			else if (ColumnId == FTextureColumn::PathColumnName)
 			{
 				Values.Add(PakFileItem->Path);
 			}
-			else if (ColumnId == FFileColumn::ClassColumnName)
-			{
-				Values.Add(PakFileItem->Class.ToString());
-			}
-			else if (ColumnId == FFileColumn::OffsetColumnName)
-			{
-				Values.Add(FString::Printf(TEXT("%lld"), PakEntry->Offset));
-			}
-			else if (ColumnId == FFileColumn::SizeColumnName)
+			else if (ColumnId == FTextureColumn::SizeColumnName)
 			{
 				Values.Add(FString::Printf(TEXT("%lld"), PakEntry->UncompressedSize));
 			}
-			else if (ColumnId == FFileColumn::CompressedSizeColumnName)
+			else if (ColumnId == FTextureColumn::WidthColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%lld"), PakEntry->Size));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->Width));
 			}
-			else if (ColumnId == FFileColumn::CompressionBlockCountColumnName)
+			else if (ColumnId == FTextureColumn::HeightColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%d"), PakEntry->CompressionBlocks.Num()));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->Height));
 			}
-			else if (ColumnId == FFileColumn::CompressionBlockSizeColumnName)
+			else if (ColumnId == FTextureColumn::MipGenSettingColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%u"), PakEntry->CompressionBlockSize));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->MipGen));
 			}
-			else if (ColumnId == FFileColumn::CompressionMethodColumnName)
+			else if (ColumnId == FTextureColumn::LodBiasColumnName)
 			{
-				Values.Add(PakFileItem->CompressionMethod.ToString());
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->LodBias));
 			}
-			else if (ColumnId == FFileColumn::SHA1ColumnName)
+			else if (ColumnId == FTextureColumn::MaxSizeColumnName)
 			{
-				Values.Add(BytesToHex(PakEntry->Hash, sizeof(PakEntry->Hash)));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->MaxSize));
 			}
-			else if (ColumnId == FFileColumn::IsEncryptedColumnName)
+			else if (ColumnId == FTextureColumn::GroupColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%s"), PakEntry->IsEncrypted() ? TEXT("True") : TEXT("False")));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->TextureGroup));
 			}
-			else if (ColumnId == FFileColumn::DependencyCountColumnName)
+			else if (ColumnId == FTextureColumn::IsStreamingColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->AssetSummary.IsValid() ? PakFileItem->AssetSummary->DependencyList.Num() : 0));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->TextureGroup));
 			}
-			else if (ColumnId == FFileColumn::DependentCountColumnName)
+			else if (ColumnId == FTextureColumn::IsSRGBColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->AssetSummary.IsValid() ? PakFileItem->AssetSummary->DependentList.Num() : 0));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->sRGB));
 			}
-			else if (ColumnId == FFileColumn::OwnerPakColumnName)
+			else if (ColumnId == FTextureColumn::CompressionColumnName)
 			{
-				Values.Add(FString::Printf(TEXT("%s"), PakAnalyzer && PakAnalyzer->GetPakFileSumary().IsValidIndex(PakFileItem->OwnerPakIndex) ? *FPaths::GetCleanFilename(PakAnalyzer->GetPakFileSumary()[PakFileItem->OwnerPakIndex]->PakFilePath) : TEXT("")));
+				Values.Add(FString::Printf(TEXT("%d"), PakFileItem->TextureCompression));
 			}
 		}
 	}
@@ -1558,7 +1395,7 @@ void SPakTextureView::OnCopyColumnExecute(const FName ColumnId)
 
 void SPakTextureView::OnJumpToTreeViewExecute()
 {
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
 	if (SelectedItems.Num() > 0 && SelectedItems[0].IsValid())
@@ -1640,10 +1477,10 @@ void SPakTextureView::OnExportToJson()
 		return;
 	}
 
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
-	IPakAnalyzerModule::Get().GetPakAnalyzer()->ExportToJson(OutFileNames[0], SelectedItems);
+	//IPakAnalyzerModule::Get().GetPakAnalyzer()->ExportToJson(OutFileNames[0], SelectedItems);
 }
 
 void SPakTextureView::OnExportToCsv()
@@ -1671,10 +1508,10 @@ void SPakTextureView::OnExportToCsv()
 		return;
 	}
 
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
-	IPakAnalyzerModule::Get().GetPakAnalyzer()->ExportToCsv(OutFileNames[0], SelectedItems);
+	//IPakAnalyzerModule::Get().GetPakAnalyzer()->ExportToCsv(OutFileNames[0], SelectedItems);
 }
 
 void SPakTextureView::OnExtract()
@@ -1699,19 +1536,19 @@ void SPakTextureView::OnExtract()
 		return;
 	}
 
-	TArray<FPakFileEntryPtr> SelectedItems;
+	TArray<FPakTextureEntryPtr> SelectedItems;
 	GetSelectedItems(SelectedItems);
 
-	IPakAnalyzerModule::Get().GetPakAnalyzer()->ExtractFiles(OutputPath, SelectedItems);
+	//IPakAnalyzerModule::Get().GetPakAnalyzer()->ExtractFiles(OutputPath, SelectedItems);
 }
 
 void SPakTextureView::ScrollToItem(const FString& InPath, int32 PakIndex)
 {
-	for (const FPakFileEntryPtr FileEntry : FileCache)
+	for (const FPakTextureEntryPtr FileEntry : FileCache)
 	{
 		if (FileEntry->Path.Equals(InPath, ESearchCase::IgnoreCase) && FileEntry->OwnerPakIndex == PakIndex)
 		{
-			TArray<FPakFileEntryPtr> SelectArray = { FileEntry };
+			TArray<FPakTextureEntryPtr> SelectArray = { FileEntry };
 			FileListView->SetItemSelection(SelectArray, true, ESelectInfo::Direct);
 			FileListView->RequestScrollIntoView(FileEntry);
 			return;
@@ -1721,23 +1558,17 @@ void SPakTextureView::ScrollToItem(const FString& InPath, int32 PakIndex)
 
 void SPakTextureView::OnLoadAssetReigstryFinished()
 {
-	FillClassesFilter();
-
 	MarkDirty(true);
 }
 
 void SPakTextureView::OnLoadPakFinished()
 {
-	FillClassesFilter();
 	FillPaksFilter();
-
 	MarkDirty(true);
 }
 
 void SPakTextureView::OnParseAssetFinished()
 {
-	FillClassesFilter();
-
 	MarkDirty(true);
 }
 
@@ -1749,7 +1580,7 @@ void SPakTextureView::FillFilesSummary()
 
 	if (FileCache.Num() > 0)
 	{
-		for (FPakFileEntryPtr PakFileEntryPtr : FileCache)
+		for (FPakTextureEntryPtr PakFileEntryPtr : FileCache)
 		{
 			FilesSummary->PakEntry.UncompressedSize += PakFileEntryPtr->PakEntry.UncompressedSize;
 			FilesSummary->PakEntry.Size += PakFileEntryPtr->PakEntry.Size;
@@ -1759,7 +1590,7 @@ void SPakTextureView::FillFilesSummary()
 	}
 }
 
-bool SPakTextureView::GetSelectedItems(TArray<FPakFileEntryPtr>& OutSelectedItems) const
+bool SPakTextureView::GetSelectedItems(TArray<FPakTextureEntryPtr>& OutSelectedItems) const
 {
 	if (FileListView.IsValid())
 	{

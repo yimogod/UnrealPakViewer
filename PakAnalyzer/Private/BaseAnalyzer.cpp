@@ -40,6 +40,11 @@ void FBaseAnalyzer::GetFiles(const FString& InFilterText, const TMap<FName, bool
 	}
 }
 
+void FBaseAnalyzer::Get2DTextures(const FString& InFilterText, const TMap<int32, bool>& InPakIndexFilter, TArray<FPakTextureEntryPtr>& OutFiles) const 
+{
+	
+}
+
 const TArray<FPakFileSumaryPtr>& FBaseAnalyzer::GetPakFileSumary() const
 {
 	return PakFileSummaries;

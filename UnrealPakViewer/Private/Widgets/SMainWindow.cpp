@@ -94,6 +94,7 @@ void SMainWindow::Construct(const FArguments& Args)
 				FTabManager::NewStack()
 				->AddTab(TreeViewTabId, ETabState::OpenedTab)
 				->AddTab(FileViewTabId, ETabState::OpenedTab)
+				->AddTab(TextureViewTabId, ETabState::OpenedTab)
 				->SetForegroundTab(FTabId(TreeViewTabId))
 			)
 		);

@@ -4,7 +4,8 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Views/SListView.h"
 
-#include "ViewModels/FileColumn.h"
+#include "ViewModels/TextureColumn.h"
+#include "ViewModels/TextureSortAndFilter.h"
 #include "PakFileEntry.h"
 
 /** Implements the Pak Info window. */
@@ -32,8 +33,8 @@ public:
 	 */
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
-	const FFileColumn* FindCoulum(const FName ColumnId) const;
-	FFileColumn* FindCoulum(const FName ColumnId);
+	const FTextureColumn* FindCoulum(const FName ColumnId) const;
+	FTextureColumn* FindCoulum(const FName ColumnId);
 
 	FText GetSearchText() const;
 
@@ -44,7 +45,7 @@ protected:
 	void OnSearchBoxTextChanged(const FText& InFilterText);
 
 	/** Generate a new list view row. */
-	TSharedRef<ITableRow> OnGenerateFileRow(FPakFileEntryPtr InPakFileItem, const TSharedRef<class STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> OnGenerateFileRow(FPakTextureEntryPtr InPakFileItem, const TSharedRef<class STableViewBase>& OwnerTable);
 	
 	/** Generate a right-click context menu. */
 	TSharedPtr<SWidget> OnGenerateContextMenu();
@@ -54,14 +55,7 @@ protected:
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// File List View - Class Filter
-	TSharedRef<SWidget> OnBuildClassFilterMenu();
 	TSharedRef<SWidget> OnBuildPakFilterMenu();
-
-	void OnShowAllClassesExecute();
-	bool IsShowAllClassesChecked() const;
-	void OnToggleClassesExecute(FName InClassName);
-	bool IsClassesFilterChecked(FName InClassName) const;
-	void FillClassesFilter();
 
 	void OnShowAllPaksExecute();
 	bool IsShowAllPaksChecked() const;
@@ -119,29 +113,29 @@ protected:
 	void OnParseAssetFinished();
 
 	void FillFilesSummary();
-	bool GetSelectedItems(TArray<FPakFileEntryPtr>& OutSelectedItems) const;
+	bool GetSelectedItems(TArray<FPakTextureEntryPtr>& OutSelectedItems) const;
 
 protected:
 	/** The search box widget used to filter items displayed in the file view. */
 	TSharedPtr<class SSearchBox> SearchBox;
 
 	/** The list view widget. */
-	TSharedPtr<SListView<FPakFileEntryPtr>> FileListView;
+	TSharedPtr<SListView<FPakTextureEntryPtr>> FileListView;
 
 	/** Holds the list view header row widget which display all columns in the list view. */
 	TSharedPtr<class SHeaderRow> FileListHeaderRow;
 
 	/** List of files to show in list view (i.e. filtered). */
-	TArray<FPakFileEntryPtr> FileCache;
+	TArray<FPakTextureEntryPtr> FileCache;
 
 	/** Manage show, hide and sort. */
-	TMap<FName, FFileColumn> FileColumns;
+	TMap<FName, FTextureColumn> TextureColumns;
 
 	/** The async task to sort and filter file on a worker thread */
 	TUniquePtr<FAsyncTask<class FTextureSortAndFilterTask>> SortAndFilterTask;
 	FTextureSortAndFilterTask* InnderTask;
 
-	FName CurrentSortedColumn = FFileColumn::OffsetColumnName;
+	FName CurrentSortedColumn = FTextureColumn::SizeColumnName;
 	EColumnSortMode::Type CurrentSortMode = EColumnSortMode::Ascending;
 	FString CurrentSearchText;
 
@@ -150,9 +144,7 @@ protected:
 	FString DelayHighlightItem;
 	int32 DelayHighlightItemPakIndex = -1;
 
-	TMap<FName, bool> ClassFilterMap;
-
-	FPakFileEntryPtr FilesSummary;
+	FPakTextureEntryPtr FilesSummary;
 
 	struct FPakFilterInfo
 	{

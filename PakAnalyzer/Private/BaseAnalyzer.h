@@ -21,6 +21,7 @@ public:
 
 	virtual bool LoadPakFiles(const TArray<FString>& InPakPaths, const TArray<FString>& InDefaultAESKeys) override;
 	virtual void GetFiles(const FString& InFilterText, const TMap<FName, bool>& InClassFilterMap, const TMap<int32, bool>& InPakIndexFilter, TArray<FPakFileEntryPtr>& OutFiles) const override;
+	virtual void Get2DTextures(const FString& InFilterText, const TMap<int32, bool>& InPakIndexFilter, TArray<FPakTextureEntryPtr>& OutFiles) const override;
 	virtual const TArray<FPakFileSumaryPtr>& GetPakFileSumary() const override;
 	virtual const TArray<FPakTreeEntryPtr>& GetPakTreeRootNode() const override;
 	virtual bool LoadAssetRegistry(const FString& InRegristryPath) override;
