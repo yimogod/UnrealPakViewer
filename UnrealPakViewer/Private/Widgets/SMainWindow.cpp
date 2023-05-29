@@ -2,7 +2,6 @@
 
 #include "Async/TaskGraphInterfaces.h"
 #include "DesktopPlatformModule.h"
-//#include "EditorStyleSet.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Docking/TabManager.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -24,6 +23,7 @@
 #include "SPakFileView.h"
 #include "SPakSummaryView.h"
 #include "SPakTreeView.h"
+#include "SPakTextureView.h"
 #include "UnrealPakViewerStyle.h"
 #include "ViewModels/WidgetDelegates.h"
 
@@ -32,6 +32,7 @@
 static const FName SummaryViewTabId("UnrealPakViewerSummaryView");
 static const FName TreeViewTabId("UnrealPakViewerTreeView");
 static const FName FileViewTabId("UnrealPakViewerFileView");
+static const FName TextureViewTabId("UnrealPakViewerTextureView");
 
 SMainWindow::SMainWindow()
 {
@@ -70,6 +71,11 @@ void SMainWindow::Construct(const FArguments& Args)
 	TabManager->RegisterTabSpawner(FileViewTabId, FOnSpawnTab::CreateRaw(this, &SMainWindow::OnSpawnTab_FileView))
 		.SetDisplayName(LOCTEXT("FileViewTabTitle", "File View"))
 		.SetIcon(FSlateIcon(FUnrealPakViewerStyle::GetStyleSetName(), "Tab.File"))
+		.SetGroup(AppMenuGroup);
+
+	TabManager->RegisterTabSpawner(TextureViewTabId, FOnSpawnTab::CreateRaw(this, &SMainWindow::OnSpawnTab_TextureView))
+		.SetDisplayName(LOCTEXT("TextureViewTabTitle", "Texture View"))
+		.SetIcon(FSlateIcon(FUnrealPakViewerStyle::GetStyleSetName(), "Tab.Texture"))
 		.SetGroup(AppMenuGroup);
 
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("UnrealPakViewer_v1.0")
@@ -270,6 +276,18 @@ TSharedRef<class SDockTab> SMainWindow::OnSpawnTab_FileView(const FSpawnTabArgs&
 		.TabRole(ETabRole::PanelTab)
 		[
 			SNew(SPakFileView)
+		];
+
+	return DockTab;
+}
+
+TSharedRef<class SDockTab> SMainWindow::OnSpawnTab_TextureView(const FSpawnTabArgs& Args)
+{
+	const TSharedRef<SDockTab> DockTab = SNew(SDockTab)
+		.ShouldAutosize(false)
+		.TabRole(ETabRole::PanelTab)
+		[
+			SNew(SPakTextureView)
 		];
 
 	return DockTab;

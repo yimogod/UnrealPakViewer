@@ -53,6 +53,7 @@ TSharedRef<FSlateStyleSet> FUnrealPakViewerStyle::Create()
 	Style.Set("Export", new IMAGE_BRUSH(ResourceDir, "/Icons/icon_ContentBrowser_40x", FVector2D(40.f, 40.f)));
 	Style.Set("Tab.Tree", new IMAGE_BRUSH(ResourceDir, "/Icons/icon_Persona_Skeleton_Tree_16x", FVector2D(20.f, 20.f)));
 	Style.Set("Tab.File", new IMAGE_BRUSH(ResourceDir, "/Icons/icon_source_control_40x", FVector2D(20.f, 20.f)));
+	Style.Set("Tab.Texture", new IMAGE_BRUSH(ResourceDir, "/Icons/icon_source_control_40x", FVector2D(20.f, 20.f)));
 	Style.Set("Tab.Summary", new IMAGE_BRUSH(ResourceDir, "/Icons/icon_StaticMeshEd_Collision_40x", FVector2D(20.f, 20.f)));
 
 	return StyleRef;
