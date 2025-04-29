@@ -6,8 +6,6 @@
 
 #include "CommonDefines.h"
 
-#if ENABLE_IO_STORE_ANALYZER
-
 #include "Async/Async.h"
 #include "HAL/ThreadSafeBool.h"
 #include "IO/IoDispatcher.h"
@@ -60,9 +58,9 @@ protected:
 	FThreadSafeBool IsStopExtract;
 	FString ExtractOutputPath;
 
+	//存储所有的script object的元数据
 	TMap<FPackageObjectIndex, FScriptObjectDesc> ScriptObjectByGlobalIdMap;
 	TMap<uint64, FIoStoreTocResourceInfo> TocResources;
 	TMap<FPackageObjectIndex, const FIoStoreExport*> ExportByGlobalIdMap;
 };
 
-#endif // ENABLE_IO_STORE_ANALYZER

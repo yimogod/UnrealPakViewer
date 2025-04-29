@@ -4,8 +4,6 @@
 
 #include "CommonDefines.h"
 
-#if ENABLE_IO_STORE_ANALYZER
-
 #include "IO/IoDispatcher.h"
 #include "IO/IoContainerHeader.h"
 #include "Serialization/AsyncLoading2.h"
@@ -350,5 +348,3 @@ struct FStorePackageInfo
 		return !(*this == Rhs);
 	}
 };
-
-#endif // ENABLE_IO_STORE_ANALYZER

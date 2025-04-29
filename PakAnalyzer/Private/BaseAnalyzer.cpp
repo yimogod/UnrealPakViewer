@@ -453,7 +453,7 @@ FName FBaseAnalyzer::GetAssetClass(const FString& InFilename, FName InPackagePat
 FName FBaseAnalyzer::GetPackagePath(const FString& InFilePath)
 {
 	FString Left, Right;
-	if (InFilePath.Split(TEXT("/Content/"), &Left, &Right))
+	if (InFilePath.Split(TEXT("/Content/"), &Left, &Right) || InFilePath.Split(TEXT("Content/"), &Left, &Right))
 	{
 		const FString Prefix = FPaths::GetPathLeaf(Left);
 		const bool bNotUseGamePrefix = Prefix == TEXT("Engine") || InFilePath.Contains(TEXT("Plugin"));

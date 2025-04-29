@@ -303,11 +303,7 @@ void SMainWindow::OnLoadPakFile()
 			LOCTEXT("LoadPak_FileDesc", "Open pak file...").ToString(),
 			TEXT(""),
 			TEXT(""),
-#if ENABLE_IO_STORE_ANALYZER
 			LOCTEXT("LoadPak_FileFilter", "Pak files (*.pak, *.ucas)|*.pak;*.ucas|All files (*.*)|*.*").ToString(),
-#else
-			LOCTEXT("LoadPak_FileFilter", "Pak files (*.pak)|*.pak|All files (*.*)|*.*").ToString(),
-#endif
 			EFileDialogFlags::Multiple,
 			OutFiles
 		);
@@ -489,11 +485,7 @@ FReply SMainWindow::OnDrop(const FGeometry& MyGeometry, const FDragDropEvent& Dr
 			for (const FString File : Files)
 			{
 				const FString DraggedFileExtension = FPaths::GetExtension(File, true).ToLower();
-#if ENABLE_IO_STORE_ANALYZER
 				if (DraggedFileExtension == TEXT(".pak") || DraggedFileExtension == TEXT(".ucas"))
-#else
-				if (DraggedFileExtension == TEXT(".pak"))
-#endif
 				{
 					PakFiles.Add(File);
 				}
@@ -521,11 +513,7 @@ FReply SMainWindow::OnDragOver(const FGeometry& MyGeometry, const FDragDropEvent
 			for (const FString File : Files)
 			{
 				const FString DraggedFileExtension = FPaths::GetExtension(File, true).ToLower();
-#if ENABLE_IO_STORE_ANALYZER
 				if (DraggedFileExtension == TEXT(".pak") || DraggedFileExtension == TEXT(".ucas"))
-#else
-				if (DraggedFileExtension == TEXT(".pak"))
-#endif
 				{
 					return FReply::Handled();
 				}

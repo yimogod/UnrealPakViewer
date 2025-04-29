@@ -124,6 +124,14 @@ public:
 		{
 			RowContent = SNew(STextBlock).Text(FText::AsNumber(Object->Index));
 		}
+		else if (ColumnName == "ClassIndex")
+		{
+			RowContent = SNew(STextBlock).Text(FText::AsNumber(Object->ExportIndex));
+		}
+		else if (ColumnName == "ClassName")
+		{
+			RowContent = SNew(STextBlock).Text(FText::FromName(Object->ClassName)).ToolTipText(FText::FromName(Object->ClassName)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
+		}
 		else if (ColumnName == "ObjectName")
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromName(Object->ObjectName)).ToolTipText(FText::FromName(Object->ObjectName)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
@@ -148,23 +156,19 @@ public:
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromString(Object->bNotForServer ? TEXT("true") : TEXT("false"))).Justification(ETextJustify::Center);
 		}
-		else if (ColumnName == "ClassIndex")
-		{
-			RowContent = SNew(STextBlock).Text(FText::FromName(Object->ClassName)).ToolTipText(FText::FromName(Object->ClassName)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
-		}
-		else if (ColumnName == "SuperIndex")
+		/*else if (ColumnName == "SuperIndex")
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromName(Object->Super)).ToolTipText(FText::FromName(Object->Super)).Justification(ETextJustify::Right).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
 		}
 		else if (ColumnName == "TemplateIndex")
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromName(Object->TemplateObject)).ToolTipText(FText::FromName(Object->TemplateObject)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
-		}
+		}*/
 		else if (ColumnName == "FullPath")
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromName(Object->ObjectPath)).ToolTipText(FText::FromName(Object->ObjectPath)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
 		}
-		else if (ColumnName == "Dependencies")
+		/*else if (ColumnName == "Dependencies")
 		{
 			RowContent = SNew(SComboBox<TSharedPtr<FName>>)
 				.ContentPadding(FMargin(6.0f, 2.0f))
@@ -177,7 +181,7 @@ public:
 				[
 					SNew(STextBlock).Text(LOCTEXT("Dependencies", "Dependencies"))
 				];
-		}
+		}*/
 		else
 		{
 			RowContent = SNew(STextBlock).Text(LOCTEXT("UnknownColumn", "Unknown Column")).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
@@ -264,6 +268,20 @@ void SAssetSummaryView::Construct(const FArguments& InArgs)
 		.Padding(0.f, 2.f)
 		[
 			SNew(SKeyValueRow).KeyText(LOCTEXT("Tree_View_Summary_PackageFlags", "PackageFlags:")).ValueText(this, &SAssetSummaryView::GetPackageFlags)
+		]
+
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.f, 2.f)
+		[
+			SNew(SKeyValueRow).KeyText(LOCTEXT("Tree_View_Summary_ImportTableOffset", "ImportTableOffset:")).ValueText(this, &SAssetSummaryView::GetImportOffset)
+		]
+
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.f, 2.f)
+		[
+			SNew(SKeyValueRow).KeyText(LOCTEXT("Tree_View_Summary_ExportTableOffset", "ExportTableOffset:")).ValueText(this, &SAssetSummaryView::GetExportOffset)
 		]
 
 		+ SVerticalBox::Slot()
@@ -550,17 +568,18 @@ void SAssetSummaryView::Construct(const FArguments& InArgs)
 	InsertColumn(ImportObjectHeaderRow, "FullPath");
 
 	InsertColumn(ExportObjectHeaderRow, "Index");
+	InsertColumn(ExportObjectHeaderRow, "ClassIndex");
+	InsertColumn(ExportObjectHeaderRow, "ClassName", TEXT("ClassName"));
 	InsertColumn(ExportObjectHeaderRow, "ObjectName");
-	InsertColumn(ExportObjectHeaderRow, "ClassIndex", TEXT("ClassName"));
 	InsertSortableColumn(ExportObjectHeaderRow, "SerialSize");
 	InsertSortableColumn(ExportObjectHeaderRow, "SerialOffset");
 	InsertColumn(ExportObjectHeaderRow, "FullPath");
 	InsertColumn(ExportObjectHeaderRow, "bIsAsset");
 	InsertColumn(ExportObjectHeaderRow, "bNotForClient");
 	InsertColumn(ExportObjectHeaderRow, "bNotForServer");
-	InsertColumn(ExportObjectHeaderRow, "TemplateIndex", TEXT("TemplateObject"));
-	InsertColumn(ExportObjectHeaderRow, "SuperIndex", TEXT("Super"));
-	InsertColumn(ExportObjectHeaderRow, "Dependencies");
+	//InsertColumn(ExportObjectHeaderRow, "TemplateIndex", TEXT("TemplateObject"));
+	//InsertColumn(ExportObjectHeaderRow, "SuperIndex", TEXT("Super"));
+	//InsertColumn(ExportObjectHeaderRow, "Dependencies");
 }
 
 void SAssetSummaryView::SetViewingPackage(FPakFileEntryPtr InPackage)

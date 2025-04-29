@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "Logging/LogMacros.h"
 
-#define ENABLE_IO_STORE_ANALYZER 1
-
 DECLARE_LOG_CATEGORY_EXTERN(LogPakAnalyzer, Log, All);
 
 class FPakAnalyzerDelegates

@@ -1,7 +1,5 @@
 #include "IoStoreAnalyzer.h"
 
-#if ENABLE_IO_STORE_ANALYZER
-
 #include "Algo/Sort.h"
 #include "Async/AsyncFileHandle.h"
 #include "Async/ParallelFor.h"
@@ -233,6 +231,7 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 
 	UE_LOG(LogPakAnalyzer, Display, TEXT("Loading script imports..."));
 
+	//获取global中 scriptobject 的二进制数据buffer
 	TIoStatusOr<FIoBuffer> ScriptObjectsBuffer = GlobalIoStoreReader->Read(CreateIoChunkId(0, 0, EIoChunkType::ScriptObjects), FIoReadOptions());
 	if (!ScriptObjectsBuffer.IsOk())
 	{
@@ -241,10 +240,17 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 	}
 
 	FLargeMemoryReader ScriptObjectsArchive(ScriptObjectsBuffer.ValueOrDie().Data(), ScriptObjectsBuffer.ValueOrDie().DataSize());
+	//获取所有的的name. debug发现里面包含了1.所有的类的名称,2.所有的方法名 3.所有的CDO. 一个简单的项目, 此容量超过34000
 	GlobalNameMap = LoadNameBatch(ScriptObjectsArchive);
+	
+	//获取总共有多少对象
 	int32 NumScriptObjects = 0;
 	ScriptObjectsArchive << NumScriptObjects;
+
+	//获取ScriptObject首个数据的地址
 	const FScriptObjectEntry* ScriptObjectEntries = reinterpret_cast<const FScriptObjectEntry*>(ScriptObjectsBuffer.ValueOrDie().Data() + ScriptObjectsArchive.Tell());
+
+	//显示复制所有的 FScriptObjectEntry 到本地的 FScriptObjectDesc对象
 	for (int32 ScriptObjectIndex = 0; ScriptObjectIndex < NumScriptObjects; ++ScriptObjectIndex)
 	{
 		const FScriptObjectEntry& ScriptObjectEntry = ScriptObjectEntries[ScriptObjectIndex];
@@ -255,6 +261,8 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 		ScriptObjectDesc.GlobalImportIndex = ScriptObjectEntry.GlobalIndex;
 		ScriptObjectDesc.OuterIndex = ScriptObjectEntry.OuterIndex;
 	}
+
+	//查找outer obj的名字, 形成名称路径--fullname
 	for (auto& KV : ScriptObjectByGlobalIdMap)
 	{
 		FScriptObjectDesc& ScriptObjectDesc = KV.Get<1>();
@@ -263,6 +271,7 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 			TArray<FScriptObjectDesc*> ScriptObjectStack;
 			FScriptObjectDesc* Current = &ScriptObjectDesc;
 			FString FullName;
+
 			while (Current)
 			{
 				if (!Current->FullName.IsNone())
@@ -273,6 +282,7 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 				ScriptObjectStack.Push(Current);
 				Current = ScriptObjectByGlobalIdMap.Find(Current->OuterIndex);
 			}
+
 			while (ScriptObjectStack.Num() > 0)
 			{
 				Current = ScriptObjectStack.Pop();
@@ -281,78 +291,6 @@ bool FIoStoreAnalyzer::InitializeGlobalReader(const FString& InPakPath)
 			}
 		}
 	}
-
-	//UE_LOG(LogPakAnalyzer, Display, TEXT("IoStore loading global name map..."));
-
-	//TIoStatusOr<FIoBuffer> GlobalNamesIoBuffer = GlobalIoStoreReader->Read(CreateIoChunkId(0, 0, EIoChunkType::LoaderGlobalNames), FIoReadOptions());
-	//if (!GlobalNamesIoBuffer.IsOk())
-	//{
-	//	UE_LOG(LogPakAnalyzer, Warning, TEXT("IoStore failed reading names chunk from global container '%s'"), *GlobalContainerPath);
-	//	return false;
-	//}
-
-	//TIoStatusOr<FIoBuffer> GlobalNameHashesIoBuffer = GlobalIoStoreReader->Read(CreateIoChunkId(0, 0, EIoChunkType::LoaderGlobalNameHashes), FIoReadOptions());
-	//if (!GlobalNameHashesIoBuffer.IsOk())
-	//{
-	//	UE_LOG(LogPakAnalyzer, Warning, TEXT("IoStore failed reading name hashes chunk from global container '%s'"), *GlobalContainerPath);
-	//	return false;
-	//}
-
-	//LoadNameBatch(
-	//	GlobalNameMap,
-	//	TArrayView<const uint8>(GlobalNamesIoBuffer.ValueOrDie().Data(), GlobalNamesIoBuffer.ValueOrDie().DataSize()),
-	//	TArrayView<const uint8>(GlobalNameHashesIoBuffer.ValueOrDie().Data(), GlobalNameHashesIoBuffer.ValueOrDie().DataSize()));
-
-	//UE_LOG(LogPakAnalyzer, Display, TEXT("IoStore loading script imports..."));
-
-	//TIoStatusOr<FIoBuffer> InitialLoadIoBuffer = GlobalIoStoreReader->Read(CreateIoChunkId(0, 0, EIoChunkType::LoaderInitialLoadMeta), FIoReadOptions());
-	//if (!InitialLoadIoBuffer.IsOk())
-	//{
-	//	UE_LOG(LogPakAnalyzer, Warning, TEXT("IoStore failed reading initial load meta chunk from global container '%s'"), *GlobalContainerPath);
-	//	return false;
-	//}
-
-	//FLargeMemoryReader InitialLoadArchive(InitialLoadIoBuffer.ValueOrDie().Data(), InitialLoadIoBuffer.ValueOrDie().DataSize());
-	//int32 NumScriptObjects = 0;
-	//InitialLoadArchive << NumScriptObjects;
-	//const FScriptObjectEntry* ScriptObjectEntries = reinterpret_cast<const FScriptObjectEntry*>(InitialLoadIoBuffer.ValueOrDie().Data() + InitialLoadArchive.Tell());
-	//for (int32 ScriptObjectIndex = 0; ScriptObjectIndex < NumScriptObjects; ++ScriptObjectIndex)
-	//{
-	//	const FScriptObjectEntry& ScriptObjectEntry = ScriptObjectEntries[ScriptObjectIndex];
-	//	const FMappedName& MappedName = FMappedName::FromMinimalName(ScriptObjectEntry.ObjectName);
-	//	check(MappedName.IsGlobal());
-	//	FScriptObjectDesc& ScriptObjectDesc = ScriptObjectByGlobalIdMap.Add(ScriptObjectEntry.GlobalIndex);
-	//	ScriptObjectDesc.Name = FName::CreateFromDisplayId(GlobalNameMap[MappedName.GetIndex()], MappedName.GetNumber());
-	//	ScriptObjectDesc.GlobalImportIndex = ScriptObjectEntry.GlobalIndex;
-	//	ScriptObjectDesc.OuterIndex = ScriptObjectEntry.OuterIndex;
-	//}
-
-	//for (auto& KV : ScriptObjectByGlobalIdMap)
-	//{
-	//	FScriptObjectDesc& ScriptObjectDesc = KV.Get<1>();
-	//	if (ScriptObjectDesc.FullName.IsNone())
-	//	{
-	//		TArray<FScriptObjectDesc*> ScriptObjectStack;
-	//		FScriptObjectDesc* Current = &ScriptObjectDesc;
-	//		FString FullName;
-	//		while (Current)
-	//		{
-	//			if (!Current->FullName.IsNone())
-	//			{
-	//				FullName = Current->FullName.ToString();
-	//				break;
-	//			}
-	//			ScriptObjectStack.Push(Current);
-	//			Current = ScriptObjectByGlobalIdMap.Find(Current->OuterIndex);
-	//		}
-	//		while (ScriptObjectStack.Num() > 0)
-	//		{
-	//			Current = ScriptObjectStack.Pop();
-	//			FullName /= Current->Name.ToString();
-	//			Current->FullName = FName(FullName);
-	//		}
-	//	}
-	//}
 
 	return true;
 }
@@ -383,6 +321,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 			continue;
 		}
 
+		//获取 iostore 的summary信息
 		FContainerInfo Info;
 		Info.Reader = MoveTemp(Reader);
 		Info.Summary.PakFilePath = ContainerFilePath;
@@ -422,6 +361,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 			Info.Summary.PakInfo.IndexOffset = CasFileSize;
 		}
 
+		//从iostore中拿到 ContainerHeader 数据
 		TIoStatusOr<FIoBuffer> IoBuffer = Info.Reader->Read(CreateIoChunkId(Info.Reader->GetContainerId().Value(), 0, EIoChunkType::ContainerHeader), FIoReadOptions());
 		if (IoBuffer.IsOk())
 		{
@@ -461,6 +401,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 			// RawCulturePackageMap = ContainerHeader.CulturePackageMap;
 			// RawPackageRedirects = ContainerHeader.PackageRedirects;
 
+			//从head buffer中读取 export的信息
 			TArrayView<FFilePackageStoreEntry> StoreEntries(reinterpret_cast<FFilePackageStoreEntry*>(ContainerHeader.StoreEntries.GetData()), ContainerHeader.PackageIds.Num());
 
 			for (int32 PackageIndex = 0; PackageIndex < StoreEntries.Num(); ++PackageIndex)
@@ -474,6 +415,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 
 	UE_LOG(LogPakAnalyzer, Display, TEXT("IoStore parsing packages..."));
 
+	// 填充 FStorePackageInfo 信息
 	PackageInfos.Empty(AllChunkIds.Num());
 	PackageInfos.AddZeroed(AllChunkIds.Num());
 	ParallelFor(AllChunkIds.Num(), [this, &AllChunkIds](int32 Index)
@@ -535,14 +477,17 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 			FillPackageInfo(*TocResource, PackageInfo);
 		}
 
+		// 解析 export 数据
 		if (PackageInfo.ChunkType == EIoChunkType::ExportBundleData)
 		{
 			FIoReadOptions ReadOptions;
-			TIoStatusOr<FIoBuffer> IoBuffer = Reader->Read(PackageInfo.ChunkId, ReadOptions);
 
+			//根据chunk id读取buffer数据
+			TIoStatusOr<FIoBuffer> IoBuffer = Reader->Read(PackageInfo.ChunkId, ReadOptions);
+			//然后获取这个 package 的 summary信息
 			const uint8* PackageSummaryData = IoBuffer.ValueOrDie().Data();
 			const FZenPackageSummary* PackageSummary = reinterpret_cast<const FZenPackageSummary*>(PackageSummaryData);
-			if (PackageSummary->HeaderSize > IoBuffer.ValueOrDie().DataSize())
+			if (PackageSummary->HeaderSize > IoBuffer.ValueOrDie().DataSize()) //如果数据有异常, 重新读取
 			{
 				ReadOptions.SetRange(0, PackageSummary->HeaderSize);
 				IoBuffer = Reader->Read(PackageInfo.ChunkId, ReadOptions);
@@ -559,6 +504,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 				HeaderDataReader << VersioningInfo;
 			}
 			
+			//获取这个package中用到的所有Name
 			TArray<FDisplayNameEntryId> PackageNameMap;
 			{
 				PackageNameMap = LoadNameBatch(HeaderDataReader);
@@ -568,6 +514,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 			PackageInfo.PackageName = PackageNameMap[PackageSummary->Name.GetIndex()].ToName(PackageSummary->Name.GetNumber());
 			PackageInfo.ImportedPublicExportHashes = MakeArrayView<const uint64>(reinterpret_cast<const uint64*>(PackageSummaryData + PackageSummary->ImportedPublicExportHashesOffset), (PackageSummary->ImportMapOffset - PackageSummary->ImportedPublicExportHashesOffset) / sizeof(uint64));
 			
+			//获取package的import的index
 			const FPackageObjectIndex* ImportMap = reinterpret_cast<const FPackageObjectIndex*>(PackageSummaryData + PackageSummary->ImportMapOffset);
 			PackageInfo.Imports.SetNum((PackageSummary->ExportMapOffset - PackageSummary->ImportMapOffset) / sizeof(FPackageObjectIndex));
 			for (int32 ImportIndex = 0; ImportIndex < PackageInfo.Imports.Num(); ++ImportIndex)
@@ -576,6 +523,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 				Import.GlobalImportIndex = ImportMap[ImportIndex];
 			}
 			
+			//获取package的export的index以及各种关键信息
 			const FPackageStoreExportEntry* ExportEntry = ContainerInfo.StoreEntryMap.Find(PackageInfo.PackageId);
 			if (ExportEntry)
 			{
@@ -586,6 +534,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 				{
 					const FExportMapEntry& ExportMapEntry = ExportMap[ExportIndex];
 					FIoStoreExport& Export = PackageInfo.Exports[ExportIndex];
+					//export的名称. 下面会计算fullname
 					Export.Name = PackageNameMap[ExportMapEntry.ObjectName.GetIndex()].ToName(ExportMapEntry.ObjectName.GetNumber());
 					Export.PublicExportHash = ExportMapEntry.PublicExportHash;
 					Export.OuterIndex = ExportMapEntry.OuterIndex;
@@ -707,6 +656,7 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 
 	UE_LOG(LogPakAnalyzer, Display, TEXT("Connecting imports and exports..."));
 
+	//如果公开exoport hash, 将key存储到 ExportByKeyMap
 	TMap<FPublicExportKey, FIoStoreExport*> ExportByKeyMap;
 	for (FStorePackageInfo& PackageInfo : PackageInfos)
 	{
@@ -720,6 +670,8 @@ bool FIoStoreAnalyzer::InitializeReaders(const TArray<FString>& InPaks, const TA
 		}
 	}
 	
+
+	//构建 export 的fullname
 	ParallelFor(PackageInfos.Num(), [this](int32 Index)
 	{
 		FStorePackageInfo& PackageInfo = PackageInfos[Index];
@@ -1471,5 +1423,3 @@ FName FIoStoreAnalyzer::FindObjectName(FPackageObjectIndex Index, const FStorePa
 		}
 	}
 }
-
-#endif // ENABLE_IO_STORE_ANALYZER

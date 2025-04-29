@@ -9,6 +9,8 @@
 #include "Misc/Guid.h"
 #include "Misc/SecureHash.h"
 
+#include "AssetRegistry/AssetRegistryState.h"
+
 #include "IPakAnalyzer.h"
 
 class FArrayReader;
