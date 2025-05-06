@@ -15,7 +15,7 @@
 // #include "Serialization/Archive.h"
 // #include "Serialization/MemoryWriter.h"
 
-#include "AssetParseThreadWorker.h"
+#include "PakParseThreadWorker.h"
 #include "CommonDefines.h"
 #include "ExtractThreadWorker.h"
 
@@ -536,7 +536,7 @@ void FPakAnalyzer::ShutdownAllExtractWorker()
 
 void FPakAnalyzer::ParseAssetFile()
 {
-	if (AssetParseWorker.IsValid())
+	if (PakParseWorker.IsValid())
 	{
 		TArray<FPakFileEntryPtr> UAssetFiles;
 
@@ -554,7 +554,7 @@ void FPakAnalyzer::ParseAssetFile()
 				Summaries[i] = *PakFileSummaries[i];
 			}
 
-			AssetParseWorker->StartParse(UAssetFiles, Summaries);
+			PakParseWorker->StartParse(UAssetFiles, Summaries);
 		}
 	}
 }
@@ -563,18 +563,18 @@ void FPakAnalyzer::InitializeAssetParseWorker()
 {
 	UE_LOG(LogPakAnalyzer, Log, TEXT("Initialize asset parse worker."));
 
-	if (!AssetParseWorker.IsValid())
+	if (!PakParseWorker.IsValid())
 	{
-		AssetParseWorker = MakeShared<FAssetParseThreadWorker>();
-		AssetParseWorker->OnParseFinish.BindRaw(this, &FPakAnalyzer::OnAssetParseFinish);
+		PakParseWorker = MakeShared<FPakParseThreadWorker>();
+		PakParseWorker->OnParseFinish.BindRaw(this, &FPakAnalyzer::OnAssetParseFinish);
 	}
 }
 
 void FPakAnalyzer::ShutdownAssetParseWorker()
 {
-	if (AssetParseWorker.IsValid())
+	if (PakParseWorker.IsValid())
 	{
-		AssetParseWorker->Shutdown();
+		PakParseWorker->Shutdown();
 	}
 }
 
