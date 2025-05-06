@@ -1,4 +1,4 @@
-#include "AssetParseThreadWorker.h"
+#include "PakParseThreadWorker.h"
 
 #include "Async/ParallelFor.h"
 #include "HAL/CriticalSection.h"
@@ -15,14 +15,15 @@
 #include "UObject/ObjectResource.h"
 #include "UObject/ObjectVersion.h"
 #include "UObject/PackageFileSummary.h"
+#include "AssetRegistry/AssetRegistryState.h"
 
 #include "CommonDefines.h"
 #include "ExtractThreadWorker.h"
 
-class FAssetParseMemoryReader : public FMemoryReader
+class FPakParseMemoryReader : public FMemoryReader
 {
 public:
-	explicit FAssetParseMemoryReader(const TArray<FNameEntryId>& InNameMap, const TArray<uint8>& InBytes, bool bIsPersistent = false)
+	explicit FPakParseMemoryReader(const TArray<FNameEntryId>& InNameMap, const TArray<uint8>& InBytes, bool bIsPersistent = false)
 		: FMemoryReader(InBytes, bIsPersistent)
 		, NameMap(InNameMap)
 	{
@@ -52,23 +53,42 @@ protected:
 	const TArray<FNameEntryId>& NameMap;
 };
 
+template<class T>
+FString FindFullPath(const TArray<T>& InMaps, int32 Index, const FString& InPathSpliter = TEXT("/"))
+{
+	if (!InMaps.IsValidIndex(Index))
+	{
+		return TEXT("Invalid");
+	}
 
-FAssetParseThreadWorker::FAssetParseThreadWorker()
+	const T& Object = InMaps[Index];
+	FString ObjectPath = Object.ObjectName.ToString();
+
+	if (!Object.OuterIndex.IsNull())
+	{
+		const FString ParentObjectPath = FindFullPath(InMaps, Object.OuterIndex.IsImport() ? Object.OuterIndex.ToImport() : Object.OuterIndex.ToExport(), InPathSpliter);
+		ObjectPath = ParentObjectPath + InPathSpliter + ObjectPath;
+	}
+
+	return ObjectPath;
+}
+
+FPakParseThreadWorker::FPakParseThreadWorker()
 	: Thread(nullptr)
 {
 }
 
-FAssetParseThreadWorker::~FAssetParseThreadWorker()
+FPakParseThreadWorker::~FPakParseThreadWorker()
 {
 	Shutdown();
 }
 
-bool FAssetParseThreadWorker::Init()
+bool FPakParseThreadWorker::Init()
 {
 	return true;
 }
 
-uint32 FAssetParseThreadWorker::Run()
+uint32 FPakParseThreadWorker::Run()
 {
 	UE_LOG(LogPakAnalyzer, Display, TEXT("Asset parse worker starts."));
 
@@ -161,7 +181,7 @@ uint32 FAssetParseThreadWorker::Run()
 			}
 			
 			TArray<FNameEntryId> NameMap;
-			FAssetParseMemoryReader Reader(NameMap, FileBuffer);
+			FPakParseMemoryReader Reader(NameMap, FileBuffer);
 
 			// Serialize summary
 			Reader << File->AssetSummary->PackageSummary;
@@ -216,13 +236,28 @@ uint32 FAssetParseThreadWorker::Run()
 			}
 			File->AssetSummary->Names.Shrink();
 
+			// FString TempPath = File->PackagePath.ToString();
+			// TRefCountPtr<FUObjectSerializeContext> LoadContext(FUObjectThreadContext::Get().GetSerializeContext());
+			// BeginLoad(LoadContext);
+			// FLinkerLoad* Linker = FPakUtility::CreateLinkerForFilename(LoadContext, TempPath);
+			// EndLoad(LoadContext);
+			//
+			// if (Linker)
+			// {
+			// 	UE_LOG(LogTemp, Warning, TEXT("%d"), Linker->ExportMap.Num());
+			// }
+
+			TArray<FNamePtrType>& ObjNames = File->AssetSummary->Names;
+
 			// Serialize Export Table
 			TArray<FObjectExport> Exports;
-			Exports.AddZeroed(File->AssetSummary->PackageSummary.ExportCount);
+			Exports.Reserve(File->AssetSummary->PackageSummary.ExportCount);
+			//Exports.AddZeroed(File->AssetSummary->PackageSummary.ExportCount);
 			Reader.Seek(File->AssetSummary->PackageSummary.ExportOffset);
 			for (int32 i = 0; i < File->AssetSummary->PackageSummary.ExportCount; ++i)
 			{
-				Reader << Exports[i];
+				FObjectExport& Export = Exports.Emplace_GetRef();
+				Reader << Export;
 
 				FObjectExportPtrType ExportEx = MakeShared<FObjectExportEx>();
 				ExportEx->Index = i;
@@ -232,6 +267,31 @@ uint32 FAssetParseThreadWorker::Run()
 				ExportEx->bIsAsset = Exports[i].bIsAsset;
 				ExportEx->bNotForClient = Exports[i].bNotForClient;
 				ExportEx->bNotForServer = Exports[i].bNotForServer;
+
+				FPackageIndex ClassIndex = Exports[i].ClassIndex;
+				/*if (!ClassIndex.IsExport())
+				{
+					ClassIndex = Exports[i].OuterIndex;
+				}
+
+				if (ClassIndex.IsExport())
+				{
+					int32 TempIndex = ClassIndex.ToExport();
+					ExportEx->ExportIndex = TempIndex;
+					if (ObjNames.IsValidIndex(TempIndex))
+					{
+						ExportEx->ClassName = *(ObjNames[TempIndex]);
+					}
+				}*/
+
+				if (AssetRegistryState.IsValid())
+				{
+					// FAssetData* AssetData = AssetRegistryState->GetAssetByObjectPath(Exports[i].ClassIndex);
+					// if (AssetData)
+					// {
+					// 	ExportEx->ClassName = AssetData->AssetClass;
+					// }
+				}
 
 				File->AssetSummary->ObjectExports.Add(ExportEx);
 			}
@@ -266,7 +326,7 @@ uint32 FAssetParseThreadWorker::Run()
 			{
 				const FObjectExport& Export = Exports[i];
 				FObjectExportPtrType& ExportEx = File->AssetSummary->ObjectExports[i];
-				//ExportEx->ObjectPath = *FindFullPath(Exports, i, TEXT("."));
+				ExportEx->ObjectPath = *FindFullPath(Exports, i, TEXT("."));
 
 				ParseObjectName(Imports, Exports, Export.ClassIndex, ExportEx->ClassName);
 				ParseObjectName(Imports, Exports, Export.TemplateIndex, ExportEx->TemplateObject);
@@ -312,7 +372,7 @@ uint32 FAssetParseThreadWorker::Run()
 				const FObjectImport& Import = Imports[i];
 				FObjectImportPtrType& ImportEx = File->AssetSummary->ObjectImports[i];
 
-				//ImportEx->ObjectPath = *FindFullPath(Imports, i);
+				ImportEx->ObjectPath = *FindFullPath(Imports, i);
 
 				if (bFillDependency && Import.ClassName == "Package" && !ImportEx->ObjectPath.ToString().StartsWith(TEXT("/Script")))
 				{
@@ -448,19 +508,19 @@ uint32 FAssetParseThreadWorker::Run()
 	return 0;
 }
 
-void FAssetParseThreadWorker::Stop()
+void FPakParseThreadWorker::Stop()
 {
 	StopTaskCounter.Increment();
 	EnsureCompletion();
 	StopTaskCounter.Reset();
 }
 
-void FAssetParseThreadWorker::Exit()
+void FPakParseThreadWorker::Exit()
 {
 
 }
 
-void FAssetParseThreadWorker::Shutdown()
+void FPakParseThreadWorker::Shutdown()
 {
 	Stop();
 
@@ -473,7 +533,7 @@ void FAssetParseThreadWorker::Shutdown()
 	}
 }
 
-void FAssetParseThreadWorker::EnsureCompletion()
+void FPakParseThreadWorker::EnsureCompletion()
 {
 	if (Thread)
 	{
@@ -481,7 +541,7 @@ void FAssetParseThreadWorker::EnsureCompletion()
 	}
 }
 
-void FAssetParseThreadWorker::StartParse(TArray<FPakFileEntryPtr>& InFiles, TArray<FPakFileSumary>& InSummaries)
+void FPakParseThreadWorker::StartParse(TArray<FPakFileEntryPtr>& InFiles, TArray<FPakFileSumary>& InSummaries)
 {
 	Shutdown();
 
@@ -493,7 +553,7 @@ void FAssetParseThreadWorker::StartParse(TArray<FPakFileEntryPtr>& InFiles, TArr
 	Thread = FRunnableThread::Create(this, TEXT("AssetParseThreadWorker"), 0, EThreadPriority::TPri_Highest);
 }
 
-bool FAssetParseThreadWorker::ParseObjectName(const TArray<FObjectImport>& Imports, const TArray<FObjectExport>& Exports, FPackageIndex Index, FName& OutObjectName)
+bool FPakParseThreadWorker::ParseObjectName(const TArray<FObjectImport>& Imports, const TArray<FObjectExport>& Exports, FPackageIndex Index, FName& OutObjectName)
 {
 	if (Index.IsImport())
 	{
@@ -517,7 +577,7 @@ bool FAssetParseThreadWorker::ParseObjectName(const TArray<FObjectImport>& Impor
 	return false;
 }
 
-bool FAssetParseThreadWorker::ParseObjectPath(FAssetSummaryPtr InSummary, FPackageIndex Index, FName& OutFullPath)
+bool FPakParseThreadWorker::ParseObjectPath(FAssetSummaryPtr InSummary, FPackageIndex Index, FName& OutFullPath)
 {
 	if (Index.IsImport())
 	{

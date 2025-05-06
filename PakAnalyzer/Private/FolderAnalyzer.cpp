@@ -83,7 +83,8 @@ bool FFolderAnalyzer::LoadPakFiles(const TArray<FString>& InPakPaths, const TArr
 
 		InsertFileToTree(TreeRoot, *Summary, RelativeFilename, Entry);
 
-		if (File.Contains(TEXT("DevelopmentAssetRegistry.bin")))
+		//if (File.Contains(TEXT("DevelopmentAssetRegistry.bin")))
+		if (File.Contains(TEXT("AssetRegistry.bin")))
 		{
 			AssetRegistryPath = File;
 		}
@@ -131,6 +132,7 @@ void FFolderAnalyzer::ParseAssetFile(FPakTreeEntryPtr InRoot)
 		RetriveUAssetFiles(InRoot, UAssetFiles);
 
 		TArray<FPakFileSumary> Summaries = { *PakFileSummaries[0] };
+		AssetParseWorker->AssetRegistryState = AssetRegistryState;
 		AssetParseWorker->StartParse(UAssetFiles, Summaries);
 	}
 }

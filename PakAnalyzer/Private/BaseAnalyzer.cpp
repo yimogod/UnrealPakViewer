@@ -77,6 +77,7 @@ bool FBaseAnalyzer::LoadAssetRegistry(FArrayReader& InData)
 	LoadOptions.bSerializeManageDependencies = true;
 	LoadOptions.bSerializePackageData = false;
 
+	//通过AssetRegistry.bin得到 FAssetRegistryState 数据
 	TSharedPtr<FAssetRegistryState> NewAssetRegistryState = MakeShared<FAssetRegistryState>();
 	if (NewAssetRegistryState->Serialize(InData, LoadOptions))
 	{

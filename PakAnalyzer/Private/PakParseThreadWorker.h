@@ -11,11 +11,11 @@ typedef TMap<FName, FName> ClassTypeMap;
 DECLARE_DELEGATE_ThreeParams(FOnReadAssetContent, FPakFileEntryPtr /*InFile*/, bool& /*bOutSuccess*/, TArray<uint8>& /*OutContent*/);
 DECLARE_DELEGATE_TwoParams(FOnParseFinish, bool/* bCancel*/, const ClassTypeMap&/* ClassMap*/);
 
-class FAssetParseThreadWorker : public FRunnable
+class FPakParseThreadWorker : public FRunnable
 {
 public:
-	FAssetParseThreadWorker();
-	~FAssetParseThreadWorker();
+	FPakParseThreadWorker();
+	~FPakParseThreadWorker();
 
 	virtual bool Init() override;
 	virtual uint32 Run() override;

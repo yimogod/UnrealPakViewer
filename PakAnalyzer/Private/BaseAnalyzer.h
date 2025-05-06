@@ -38,6 +38,8 @@ protected:
 	virtual FString ResolveCompressionMethod(const FPakFileSumary& Summary, const FPakEntry* InPakEntry) const;
 
 	FPakTreeEntryPtr InsertFileToTree(FPakTreeEntryPtr InRoot, const FPakFileSumary& Summary, const FString& InFullPath, const FPakEntry& InPakEntry);
+
+	//加载 AssetRegistry.bin
 	bool LoadAssetRegistry(FArrayReader& InData);
 	void RefreshPackageDependency(FPakTreeEntryPtr InTreeRoot, FPakTreeEntryPtr InRoot);
 	void RefreshClassMap(FPakTreeEntryPtr InTreeRoot, FPakTreeEntryPtr InRoot);

@@ -124,10 +124,6 @@ public:
 		{
 			RowContent = SNew(STextBlock).Text(FText::AsNumber(Object->Index));
 		}
-		else if (ColumnName == "ClassIndex")
-		{
-			RowContent = SNew(STextBlock).Text(FText::AsNumber(Object->ExportIndex));
-		}
 		else if (ColumnName == "ClassName")
 		{
 			RowContent = SNew(STextBlock).Text(FText::FromName(Object->ClassName)).ToolTipText(FText::FromName(Object->ClassName)).Margin(FMargin(LeftMargin, 0.f, 0.f, 0.f));
@@ -568,7 +564,6 @@ void SAssetSummaryView::Construct(const FArguments& InArgs)
 	InsertColumn(ImportObjectHeaderRow, "FullPath");
 
 	InsertColumn(ExportObjectHeaderRow, "Index");
-	InsertColumn(ExportObjectHeaderRow, "ClassIndex");
 	InsertColumn(ExportObjectHeaderRow, "ClassName", TEXT("ClassName"));
 	InsertColumn(ExportObjectHeaderRow, "ObjectName");
 	InsertSortableColumn(ExportObjectHeaderRow, "SerialSize");
