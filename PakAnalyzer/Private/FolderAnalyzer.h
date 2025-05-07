@@ -31,7 +31,6 @@ protected:
 	void ParseAssetFile(FPakTreeEntryPtr InRoot);
 	void InitializeAssetParseWorker();
 	void ShutdownAssetParseWorker();
-	void OnReadAssetContent(FPakFileEntryPtr InFile, bool& bOutSuccess, TArray<uint8>& OutContent);
 	void OnAssetParseFinish(bool bCancel, const TMap<FName, FName>& ClassMap);
 
 protected:

@@ -148,7 +148,6 @@ void FFolderAnalyzer::InitializeAssetParseWorker()
 	if (!AssetParseWorker.IsValid())
 	{
 		AssetParseWorker = MakeShared<FAssetParseThreadWorker>();
-		AssetParseWorker->OnReadAssetContent.BindRaw(this, &FFolderAnalyzer::OnReadAssetContent);
 		AssetParseWorker->OnParseFinish.BindRaw(this, &FFolderAnalyzer::OnAssetParseFinish);
 	}
 }
@@ -161,26 +160,9 @@ void FFolderAnalyzer::ShutdownAssetParseWorker()
 	}
 }
 
-void FFolderAnalyzer::OnReadAssetContent(FPakFileEntryPtr InFile, bool& bOutSuccess, TArray<uint8>& OutContent)
-{
-	bOutSuccess = false;
-	OutContent.Empty();
-
-	if (!InFile.IsValid())
-	{
-		return;
-	}
-
-	const FString FilePath = PakFileSummaries[0]->MountPoint / InFile->Path;
-	bOutSuccess = FFileHelper::LoadFileToArray(OutContent, *FilePath);
-}
-
 void FFolderAnalyzer::OnAssetParseFinish(bool bCancel, const TMap<FName, FName>& ClassMap)
 {
-	if (bCancel)
-	{
-		return;
-	}
+	if (bCancel)return;
 
 	DefaultClassMap = ClassMap;
 	const bool bRefreshClass = ClassMap.Num() > 0;
