@@ -15,6 +15,7 @@
 
 struct FPakEntry;
 
+//分析cook文件夹下的散列的uasset文件
 class FFolderAnalyzer : public FBaseAnalyzer, public TSharedFromThis<FFolderAnalyzer>
 {
 public:

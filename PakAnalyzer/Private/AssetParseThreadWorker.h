@@ -26,7 +26,6 @@ public:
 	void EnsureCompletion();
 	void StartParse(TArray<FPakFileEntryPtr>& InFiles, TArray<FPakFileSumary>& InSummaries);
 
-	TSharedPtr<class FAssetRegistryState> AssetRegistryState;
 	FOnReadAssetContent OnReadAssetContent;
 	FOnParseFinish OnParseFinish;
 

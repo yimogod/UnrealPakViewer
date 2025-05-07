@@ -89,6 +89,8 @@ struct FPakFileEntry : TSharedFromThis<FPakFileEntry>
 
 	FPakEntry PakEntry;
 	FName Filename;
+	//如果是cooked的文件, 那么这里就是硬盘的绝对路径
+	//对于pak, 就和PackagePath一样
 	FString Path;
 	FName CompressionMethod;
 	FName Class;

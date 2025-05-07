@@ -1,6 +1,6 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
-
 #include "FolderAnalyzer.h"
+#include "AssetParseThreadWorker.h"
+#include "CommonDefines.h"
 
 #include "AssetRegistry/ARFilter.h"
 #include "AssetRegistry/AssetData.h"
@@ -16,8 +16,6 @@
 #include "Serialization/Archive.h"
 #include "Serialization/MemoryWriter.h"
 
-#include "AssetParseThreadWorker.h"
-#include "CommonDefines.h"
 
 FFolderAnalyzer::FFolderAnalyzer()
 {
@@ -52,6 +50,7 @@ bool FFolderAnalyzer::LoadPakFiles(const TArray<FString>& InPakPaths, const TArr
 
 	Reset();
 
+	//这里没有真正的pak文件, 所有制造了对应的数据结构 
 	FPakFileSumaryPtr Summary = MakeShared<FPakFileSumary>();
 	PakFileSummaries.Add(Summary);
 
@@ -65,9 +64,12 @@ bool FFolderAnalyzer::LoadPakFiles(const TArray<FString>& InPakPaths, const TArr
 	// Make tree root
 	FPakTreeEntryPtr TreeRoot = MakeShared<FPakTreeEntry>(*FPaths::GetCleanFilename(InPakPath), Summary->MountPoint, true);
 
+	//目录下的所有文件, 大部分是uasset和uexp
+	//这里保存的都是文件的绝对路径
 	TArray<FString> FoundFiles;
 	PlatformFile.FindFilesRecursively(FoundFiles, *InPakPath, TEXT(""));
 
+	// 针对每个文件, 造假一个FPakEntry对象
 	int64 TotalSize = 0;
 	for (const FString& File : FoundFiles)
 	{
@@ -81,8 +83,10 @@ bool FFolderAnalyzer::LoadPakFiles(const TArray<FString>& InPakPaths, const TArr
 		FString RelativeFilename = File;
 		RelativeFilename.RemoveFromStart(InPakPath);
 
-		InsertFileToTree(TreeRoot, *Summary, RelativeFilename, Entry);
+		FPakTreeEntryPtr TreeEnty = InsertFileToTree(TreeRoot, *Summary, RelativeFilename, Entry);
+		TreeEnty->Path = File;
 
+		//实际上这个文件的内容不是必须
 		//if (File.Contains(TEXT("DevelopmentAssetRegistry.bin")))
 		if (File.Contains(TEXT("AssetRegistry.bin")))
 		{
@@ -128,11 +132,11 @@ void FFolderAnalyzer::ParseAssetFile(FPakTreeEntryPtr InRoot)
 {
 	if (AssetParseWorker.IsValid())
 	{
+		//拿到所有的uasset和umap文件
 		TArray<FPakFileEntryPtr> UAssetFiles;
 		RetriveUAssetFiles(InRoot, UAssetFiles);
 
 		TArray<FPakFileSumary> Summaries = { *PakFileSummaries[0] };
-		AssetParseWorker->AssetRegistryState = AssetRegistryState;
 		AssetParseWorker->StartParse(UAssetFiles, Summaries);
 	}
 }
